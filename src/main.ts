@@ -1,4 +1,5 @@
 import { Client, Events, GatewayIntentBits } from "discord.js";
+import { PrismaClient } from "@prisma/client";
 import { commands, register } from "./commands";
 import config from "./config";
 
@@ -31,3 +32,5 @@ if (config.registerCommands) {
 }
 
 client.login(process.env.DISCORD_BOT_TOKEN);
+
+export const prisma = new PrismaClient();
