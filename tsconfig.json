@@ -5,6 +5,11 @@
   ],
   "include": ["src/**/*"],
   "compilerOptions": {
-    "outDir": "dist"
+    "outDir": "dist",
+
+    // 使用傳統的 CommonJS 模組系統來避免解析錯誤
+    // TODO 改用 ESM？
+    "moduleResolution": "Node",
+    "module": "CommonJS"
   }
 }
