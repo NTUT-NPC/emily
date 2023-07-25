@@ -37,6 +37,9 @@ const command: Command = {
     )
     .addSubcommand((subcommand) =>
       subcommand.setName("同步").setDescription("同步所有身份組群組"),
+    )
+    .addSubcommand((subcommand) =>
+      subcommand.setName("列表").setDescription("列出所有身份組群組"),
     ),
 
   async execute(interaction) {
@@ -130,6 +133,44 @@ const command: Command = {
         for (const metarole of metaroles) {
           syncMetarole(metarole.group.toString());
         }
+
+        interaction.reply({
+          content: "已同步所有身份組群組。",
+          ephemeral: true,
+        });
+
+        break;
+      }
+
+      case "列表": {
+        const metaroles = await prisma.metarole.findMany({
+          where: { guild: BigInt(interaction.guildId) },
+        });
+
+        if (metaroles.length == 0) {
+          interaction.reply({
+            content: "沒有身份組群組。",
+            ephemeral: true,
+          });
+          return;
+        }
+
+        const replyContent = ["身份組群組列表：\n"];
+        const roles = interaction.guild?.roles.cache;
+        for (const m of metaroles) {
+          const memberRoles = m.memberRoles.map((r) => `<@&${r}>`).join(", ");
+          const metaroleSize = roles?.get(m.group.toString())?.members.size;
+
+          replyContent.push(
+            `<@&${m.group}>：包含 ${memberRoles}，共 ${metaroleSize} 位成員\n`,
+          );
+        }
+
+        interaction.reply({
+          content: replyContent.join(""),
+          ephemeral: true,
+          allowedMentions: { parse: [] },
+        });
 
         break;
       }
