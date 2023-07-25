@@ -4,7 +4,7 @@ import { commands, register } from "./commands";
 import config from "./config";
 
 const client = new Client({
-  intents: [GatewayIntentBits.Guilds],
+  intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildPresences],
 });
 
 client.once(Events.ClientReady, (c) => {

@@ -3,7 +3,7 @@ interface Config {
 }
 
 const config: Config = {
-  registerCommands: false,
+  registerCommands: true,
 };
 
 export default config;
