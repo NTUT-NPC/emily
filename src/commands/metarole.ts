@@ -66,7 +66,7 @@ const command: Command = {
         const memberRoleIds = [...memberRoles].map((match) => match[1]!);
 
         const existingMetarole = await prisma.metarole.findUnique({
-          where: { group: BigInt(metaroleId) },
+          where: { role: BigInt(metaroleId) },
         });
         if (existingMetarole) {
           interaction.reply({
@@ -79,7 +79,7 @@ const command: Command = {
         await prisma.metarole.create({
           data: {
             guild: BigInt(interaction.guildId),
-            group: BigInt(metaroleId),
+            role: BigInt(metaroleId),
             memberRoles: memberRoleIds.map((id) => BigInt(id)),
           },
         });
@@ -103,7 +103,7 @@ const command: Command = {
         }
 
         const metaroleEntry = await prisma.metarole.findUnique({
-          where: { group: BigInt(metarole.id) },
+          where: { role: BigInt(metarole.id) },
         });
         if (!metaroleEntry) {
           interaction.reply({
@@ -114,7 +114,7 @@ const command: Command = {
         }
 
         await prisma.metarole.delete({
-          where: { group: BigInt(metarole.id) },
+          where: { role: BigInt(metarole.id) },
         });
         interaction.reply({
           content: `已移除 <@&${metarole.id}> 身份組群組。`,
@@ -131,7 +131,7 @@ const command: Command = {
         });
 
         for (const metarole of metaroles) {
-          syncMetarole(metarole.group.toString());
+          syncMetarole(metarole.role.toString());
         }
 
         interaction.reply({
@@ -159,10 +159,10 @@ const command: Command = {
         const roles = interaction.guild?.roles.cache;
         for (const m of metaroles) {
           const memberRoles = m.memberRoles.map((r) => `<@&${r}>`).join(", ");
-          const metaroleSize = roles?.get(m.group.toString())?.members.size;
+          const metaroleSize = roles?.get(m.role.toString())?.members.size;
 
           replyContent.push(
-            `<@&${m.group}>：包含 ${memberRoles}，共 ${metaroleSize} 位成員\n`,
+            `<@&${m.role}>：包含 ${memberRoles}，共 ${metaroleSize} 位成員\n`,
           );
         }
 
@@ -178,7 +178,7 @@ const command: Command = {
 
     async function syncMetarole(metaroleId: string) {
       const metarole = await prisma.metarole.findUnique({
-        where: { group: BigInt(metaroleId) },
+        where: { role: BigInt(metaroleId) },
       });
       if (!metarole) return;
 
@@ -188,12 +188,12 @@ const command: Command = {
         console.log(role.name, role.members.keys());
 
         for (const member of role.members.values()) {
-          member.roles.add(metarole.group.toString());
+          member.roles.add(metarole.role.toString());
         }
       }
 
       await prisma.metarole.update({
-        where: { group: BigInt(metaroleId) },
+        where: { role: BigInt(metaroleId) },
         data: { syncedAt: new Date() },
       });
     }

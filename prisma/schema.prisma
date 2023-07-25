@@ -16,6 +16,6 @@ model Metarole {
   updatedAt   DateTime  @updatedAt
   syncedAt    DateTime?
   guild       BigInt
-  group       BigInt    @unique
+  role        BigInt    @unique
   memberRoles BigInt[]
 }
