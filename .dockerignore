@@ -1,0 +1,10 @@
+.git
+.vscode
+dist
+node_modules
+.eslintrc.js
+.gitignore
+.prettierignore
+.prettierrc.json
+docker-compose.yml
+Dockerfile

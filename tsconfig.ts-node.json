@@ -1,0 +1,36 @@
+{
+    "compilerOptions": {
+        "strict": true,
+        "allowUnusedLabels": false,
+        "allowUnreachableCode": false,
+        "exactOptionalPropertyTypes": true,
+        "noFallthroughCasesInSwitch": true,
+        "noImplicitOverride": true,
+        "noImplicitReturns": true,
+        "noPropertyAccessFromIndexSignature": true,
+        "noUncheckedIndexedAccess": true,
+        "noUnusedLocals": true,
+        "noUnusedParameters": true,
+        "checkJs": true,
+        "esModuleInterop": true,
+        "skipLibCheck": true,
+        "forceConsistentCasingInFileNames": true,
+        "lib": [
+            "es2023"
+        ],
+        "module": "node16",
+        "target": "es2022",
+        "moduleResolution": "node16",
+        "outDir": "./dist"
+    },
+    "files": [
+        "./src/env.d.ts",
+        "./src/main.ts"
+    ],
+    "include": [
+        "src/**/*"
+    ],
+    "exclude": [
+        "dist"
+    ]
+}
