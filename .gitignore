@@ -1,4 +1,5 @@
-node_modules
-dist
-.env
-tsconfig.ts-node.json
+/node_modules/
+/dist/
+/.env
+/docker-compose.yml
+/tsconfig.ts-node.json

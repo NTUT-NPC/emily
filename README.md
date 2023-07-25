@@ -29,7 +29,7 @@
 
 ## 部屬
 
-你可以用 `Dockerfile` 和 `docker-compose.yml` 在 Docker 部屬這個機器人。大略步驟如下：
+你可以用 `Dockerfile` 和在 Docker 部屬這個機器人。大略步驟如下：
 
 ```sh
 git clone https://github.com/NTUT-NPC/emily
@@ -38,9 +38,4 @@ cd emily
 docker compose up -d
 ```
 
-你可以參考 `src/env.d.ts` 填寫 `.env` 檔案。看起來應該會像這樣：
-
-```env
-DISCORD_BOT_TOKEN=MTEz...8-a8
-DISCORD_APPLICATION_ID=1133...6880
-```
+你可以參考 `examples/` 填寫 `.env` 和  `docker-compose.yml` 檔案。
