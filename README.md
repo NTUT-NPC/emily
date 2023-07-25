@@ -1,6 +1,6 @@
 # Emily
 
-北科程式設計研究社 (NPC) 的 Discord 社群管理工具，[舊 Emily][Java Emily] 的 Discord.js 重置版。專案結構是基於 [書呆大學長][ai-chatbot]。
+北科程式設計研究社 (NPC) 的 Discord 社群管理工具，[舊 Emily][Java Emily] 的 Discord.js 重製版。專案結構是基於 [書呆大學長][ai-chatbot]。
 
 [Java Emily]: https://github.com/ntut-xuan/NPC-Emily
 [ai-chatbot]: https://github.com/chenghsuanho/ai-chatbot
