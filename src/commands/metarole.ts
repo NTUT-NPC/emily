@@ -1,4 +1,8 @@
-import { MessageMentions, SlashCommandBuilder } from "discord.js";
+import {
+  MessageMentions,
+  PermissionFlagsBits,
+  SlashCommandBuilder,
+} from "discord.js";
 import type { Command } from "./types";
 import { prisma } from "../main";
 
@@ -6,6 +10,8 @@ const command: Command = {
   data: new SlashCommandBuilder()
     .setName("身份組群組")
     .setDescription("製作和管理身份組群組")
+    .setDefaultMemberPermissions(PermissionFlagsBits.ManageRoles)
+    .setDMPermission(false)
     .addSubcommand((subcommand) =>
       subcommand
         .setName("建立")
