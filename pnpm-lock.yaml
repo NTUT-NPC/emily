@@ -14,6 +14,9 @@ dependencies:
   dotenv:
     specifier: ^16.3.1
     version: 16.3.1
+  prisma:
+    specifier: ^5.0.0
+    version: 5.0.0
 
 devDependencies:
   '@tsconfig/node-lts':
@@ -40,9 +43,6 @@ devDependencies:
   prettier:
     specifier: ^3.0.0
     version: 3.0.0
-  prisma:
-    specifier: ^5.0.0
-    version: 5.0.0
   ts-node-dev:
     specifier: ^2.0.0
     version: 2.0.0(@types/node@20.4.4)(typescript@5.1.6)
@@ -241,6 +241,7 @@ packages:
   /@prisma/engines@5.0.0:
     resolution: {integrity: sha512-kyT/8fd0OpWmhAU5YnY7eP31brW1q1YrTGoblWrhQJDiN/1K+Z8S1kylcmtjqx5wsUGcP1HBWutayA/jtyt+sg==}
     requiresBuild: true
+    dev: false
 
   /@sapphire/async-queue@1.5.0:
     resolution: {integrity: sha512-JkLdIsP8fPAdh9ZZjrbHWR/+mZj0wvKS5ICibcLrRI1j84UmLMshx5n9QmL8b95d4onJ2xxiyugTgSAX7AalmA==}
@@ -1188,6 +1189,7 @@ packages:
     requiresBuild: true
     dependencies:
       '@prisma/engines': 5.0.0
+    dev: false
 
   /punycode@2.3.0:
     resolution: {integrity: sha512-rRV+zQD8tVFys26lAGR9WUuS4iUAngJScM+ZRSKtvl5tKeZ2t5bvdNFdNHBW9FWR4guGHlgmsZ1G7BSm2wTbuA==}

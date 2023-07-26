@@ -1,0 +1,20 @@
+# Use `pnpm dev` to run Emily in development
+
+services:
+  # Connect to db with postgresql://postgres:password@localhost:5432/emily
+  db:
+    container_name: emily-db
+    image: postgres
+    restart: unless-stopped
+    ports:
+      - 5432:5432
+    environment:
+      POSTGRES_PASSWORD: password
+
+  # Connect to adminer with http://localhost:8080/
+  adminer:
+    container_name: emily-adminer
+    image: adminer
+    restart: unless-stopped
+    ports:
+      - 8080:8080

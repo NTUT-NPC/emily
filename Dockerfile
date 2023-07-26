@@ -20,7 +20,7 @@ ENV DOCKER true
 
 COPY --from=build /usr/src/app/dist ./dist
 COPY --from=build /usr/src/app/node_modules ./node_modules
-COPY package.json .env ./
+COPY package.json .env prisma ./
 
 EXPOSE 80
 CMD [ "pnpm", "start" ]

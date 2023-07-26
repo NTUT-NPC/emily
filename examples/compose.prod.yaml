@@ -1,20 +1,15 @@
-version: "3.8"
 services:
   app:
     container_name: emily
+    depends_on:
+      - db
     build: .
     restart: unless-stopped
 
+  # Connect to db with postgresql://postgres:password@db:5432/emily
   db:
+    container_name: emily-db
     image: postgres
     restart: unless-stopped
-    ports:
-      - 5432:5432
     environment:
       POSTGRES_PASSWORD: password
-
-  adminer:
-    image: adminer
-    restart: unless-stopped
-    ports:
-      - 8080:8080

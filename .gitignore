@@ -1,5 +1,5 @@
 /node_modules/
 /dist/
 /.env
-/docker-compose.yml
+/compose.yaml
 /tsconfig.ts-node.json
