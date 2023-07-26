@@ -34,8 +34,14 @@
 ```sh
 git clone https://github.com/NTUT-NPC/emily
 cd emily
+cp examples/compose.prod.yaml compose.yaml
+cp examples/.env .
 # 用文字編輯器填寫 `.env` 檔案
 docker compose up -d
 ```
 
-你可以參考 `examples/` 填寫 `.env` 和  `docker-compose.yml` 檔案。
+最後，用邀請連結來將機器人加入您的Discord伺服器。將「你的_Client_ID」替換為您機器人的 Client ID：
+
+```url
+https://discord.com/api/oauth2/authorize?client_id=你的_Client_ID&permissions=268437504&scope=bot%20applications.commands
+```
