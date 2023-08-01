@@ -17,6 +17,16 @@
 
 [Conventional Commits]: https://www.conventionalcommits.org/zh-hant/v1.0.0/
 
+### 技術棧
+
+- [Discord.js][discord.js]：Discord API 的 Node.js 實作
+- [TypeScript][typescript]：JavaScript 的超集，提供型別檢查和其他語言功能
+- [Prisma][prisma]：資料庫存取工具
+
+[discord.js]: https://discord.js.org/
+[typescript]: https://www.typescriptlang.org/
+[prisma]: https://www.prisma.io/
+
 ### TS-Node 錯誤臨時解方
 
 使用 `ts-node-dev` 開發工具時因為會遇到 [這個問題][ts-node#2000] 無法執行 `pnpm dev`。繞過這個錯誤的臨時解方是先執行 `pnpm ts-node-workaround` 再執行 `pnpm dev`。記得在修改 `tsconfig.json` 後重新執行這個臨時解方，變更才會生效。
