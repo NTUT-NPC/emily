@@ -1,9 +1,9 @@
-import { prisma } from "../../main";
-import { Subcommand } from "../types";
+import { prisma } from "../../main.js";
+import { Subcommand } from "../types.js";
 
 const executeRemoveSubcommand: Subcommand = async (interaction) => {
   if (!interaction.inGuild()) return;
-  
+
   const metarole = interaction.options.getRole("群組");
   if (!metarole) {
     interaction.reply({ content: "請提供群組", ephemeral: true });

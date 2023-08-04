@@ -1,10 +1,10 @@
-import { syncMetarole } from ".";
-import { prisma } from "../../main";
-import { Subcommand } from "../types";
+import { syncMetarole } from "./index.js";
+import { prisma } from "../../main.js";
+import { Subcommand } from "../types.js";
 
 const executeSyncSubcommand: Subcommand = async (interaction) => {
   if (!interaction.inGuild()) return;
-  
+
   const metaroles = await prisma.metarole.findMany({
     where: { guild: BigInt(interaction.guildId) },
   });

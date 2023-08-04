@@ -1,9 +1,9 @@
-import { prisma } from "../../main";
-import { Subcommand } from "../types";
+import { prisma } from "../../main.js";
+import { Subcommand } from "../types.js";
 
 const executeListSubcommand: Subcommand = async (interaction) => {
   if (!interaction.inGuild()) return;
-  
+
   const metaroles = await prisma.metarole.findMany({
     where: { guild: BigInt(interaction.guildId) },
   });

@@ -1,21 +1,23 @@
 import { join } from "path";
 import { readdir } from "fs/promises";
 import { ApplicationCommand, REST, Routes } from "discord.js";
-import type { Command } from "./types";
+import type { Command } from "./types.js";
 
-export const commands = (async () => {
+export async function getCommands() {
   const commands = new Map<string, Command>();
-  const commandFiles = await readdir(__dirname);
+  const commandDirUrl = new URL(".", import.meta.url);
+  const commandFiles = await readdir(commandDirUrl);
 
   for (const file of commandFiles) {
-    if (file != "index.ts" && file != "types.ts") {
-      const { default: command } = await import(join(__dirname, file));
-      commands.set(command.data.name, command);
-    }
+    if (file.startsWith("index") || file.startsWith("types")) continue;
+
+    const module = new URL(join(file, "index.js"), commandDirUrl).toString();
+    const { default: command } = await import(module);
+    commands.set(command.data.name, command);
   }
 
   return commands;
-})();
+}
 
 // Returns the number of commands registered.
 export async function register() {
@@ -24,7 +26,8 @@ export async function register() {
   );
 
   const body = [];
-  for (const [, command] of await commands) {
+  const commands = await getCommands();
+  for (const command of commands.values()) {
     body.push(command.data.toJSON?.());
   }
 
