@@ -19,3 +19,22 @@ model Metarole {
   role        BigInt    @unique
   memberRoles BigInt[]
 }
+
+model Member {
+  id Int @id @default(autoincrement())
+  createdAt DateTime @default(now())
+  joinedAt DateTime?
+  registrationStep RegistrationStep @default(TERMS_AND_CONDITIONS)
+  discordId BigInt @unique
+  name String?
+  email String?
+  studentId String?
+}
+
+enum RegistrationStep {
+  TERMS_AND_CONDITIONS
+  BASIC_INFORMATION
+  PAYMENT
+  COMMITTEE_CONFIRMATION
+  COMPLETE
+}
