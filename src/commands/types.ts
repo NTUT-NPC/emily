@@ -10,4 +10,6 @@ export interface Command {
   execute: (interaction: CommandInteraction) => Promise<void>;
 }
 
-export type Subcommand = (interaction: ChatInputCommandInteraction) => Promise<void>;
+export type Subcommand = (
+  interaction: ChatInputCommandInteraction,
+) => Promise<void>;

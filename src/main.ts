@@ -1,7 +1,7 @@
-import { Client, Events, GatewayIntentBits } from "discord.js";
-import { PrismaClient } from "@prisma/client";
 import { getCommands, register } from "./commands/index.js";
 import config from "./config.js";
+import { PrismaClient } from "@prisma/client";
+import { Client, Events, GatewayIntentBits } from "discord.js";
 
 export const prisma = new PrismaClient();
 

@@ -1,11 +1,11 @@
-import { MessageMentions } from "discord.js";
 import { prisma } from "../../main.js";
-import { syncMetarole } from "./index.js";
 import { Subcommand } from "../types.js";
+import { syncMetarole } from "./index.js";
+import { MessageMentions } from "discord.js";
 
 const executeCreateSubcommand: Subcommand = async (interaction) => {
   if (!interaction.inGuild()) return;
-  
+
   const metarole = interaction.options.getRole("群組");
 
   const globalRolesPattern = new RegExp(MessageMentions.RolesPattern, "g");

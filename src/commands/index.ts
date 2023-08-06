@@ -1,7 +1,7 @@
-import { join } from "path";
-import { readdir } from "fs/promises";
-import { ApplicationCommand, REST, Routes } from "discord.js";
 import type { Command } from "./types.js";
+import { ApplicationCommand, REST, Routes } from "discord.js";
+import { readdir } from "fs/promises";
+import { join } from "path";
 
 export async function getCommands() {
   const commands = new Map<string, Command>();
