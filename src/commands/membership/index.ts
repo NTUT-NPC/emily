@@ -1,6 +1,6 @@
-import { SlashCommandBuilder } from "discord.js";
 import { Command } from "../types.js";
 import executeJoinSubcommand from "./join.js";
+import { SlashCommandBuilder } from "discord.js";
 
 const command: Command = {
   data: new SlashCommandBuilder()

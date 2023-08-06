@@ -1,3 +1,7 @@
+import { messages } from "../../config.js";
+import { prisma } from "../../main.js";
+import { Subcommand } from "../types.js";
+import { RegistrationStep } from "@prisma/client";
 import {
   ActionRowBuilder,
   ButtonBuilder,
@@ -11,10 +15,6 @@ import {
   TextInputBuilder,
   TextInputStyle,
 } from "discord.js";
-import { messages } from "../../config.js";
-import { RegistrationStep } from "@prisma/client";
-import { prisma } from "../../main.js";
-import { Subcommand } from "../types.js";
 
 const executeJoinSubcommand: Subcommand = async (interaction) => {
   // 簡介 -> 基本資料 -> 付費 -> 幹部確認 -> 成功
