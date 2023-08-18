@@ -2,19 +2,8 @@ import { messages } from "../../config.js";
 import { prisma } from "../../main.js";
 import { Subcommand } from "../types.js";
 import { RegistrationStep } from "@prisma/client";
-import {
-  ActionRowBuilder,
-  ButtonBuilder,
-  ButtonStyle,
-  DiscordjsErrorCodes,
-  InteractionReplyOptions,
-  MessageActionRowComponentBuilder,
-  MessageEditOptions,
-  ModalActionRowComponentBuilder,
-  ModalBuilder,
-  TextInputBuilder,
-  TextInputStyle,
-} from "discord.js";
+import { ActionRowBuilder, ButtonBuilder, ButtonStyle, DiscordjsErrorCodes, InteractionReplyOptions, MessageActionRowComponentBuilder, MessageEditOptions, ModalActionRowComponentBuilder, ModalBuilder, TextInputBuilder, TextInputStyle } from "discord.js";
+
 
 const executeJoinSubcommand: Subcommand = async (interaction) => {
   // 簡介 -> 基本資料 -> 付費 -> 幹部確認 -> 成功
@@ -41,7 +30,7 @@ const executeJoinSubcommand: Subcommand = async (interaction) => {
   >();
   replies.set("INTRODUCTION", getIntroductionReply());
   replies.set("BASIC_INFORMATION", getBasicInformationReply());
-  replies.set("PAYMENT", getPaymentReply());
+  replies.set("COMMITTEE_CONFIRMATION", getCommitteeConfirmation());
 
   const reply = replies.get(member.registrationStep) ?? messages.defaultError;
   const response = await interaction.reply(reply);
@@ -70,11 +59,16 @@ const executeJoinSubcommand: Subcommand = async (interaction) => {
           const name = getField("nameInput");
           const studentId = getField("studentIdInput");
           await prisma.member.update({
-            data: { email, name, studentId, registrationStep: "PAYMENT" },
+            data: {
+              email,
+              name,
+              studentId,
+              registrationStep: "COMMITTEE_CONFIRMATION",
+            },
             where: { discordId: id },
           });
 
-          await submission.reply(replies.get("PAYMENT")!);
+          await submission.reply(replies.get("COMMITTEE_CONFIRMATION")!);
         } catch (error) {
           if (!(error instanceof Error)) throw error;
 
@@ -145,10 +139,10 @@ const getBasicInformationReply = () => {
   };
 };
 
-const getPaymentReply = () => {
+const getCommitteeConfirmation = () => {
   // const actionRow = new ActionRowBuilder<MessageActionRowComponentBuilder>();
   return {
-    content: messages.join.payment,
+    content: messages.join.committeeConfirmation,
     // components: [actionRow],
   };
 };

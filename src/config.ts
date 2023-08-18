@@ -3,7 +3,7 @@ interface Config {
 }
 
 const config: Config = {
-  registerCommands: false,
+  registerCommands: true,
 };
 
 export default config;
@@ -15,7 +15,7 @@ interface Messages {
     confirmationTimeout: string;
     introduction: string;
     basicInformation: string;
-    payment: string;
+    committeeConfirmation: string;
   };
 }
 
@@ -37,14 +37,15 @@ export const messages: Messages = {
 加入社員的流程如下：
 
 1. 填寫基本資料
-2. 付費
-3. 等待幹部確認
-4. 加入成功！
+2. 等待幹部確認
+3. 加入成功！
 
 那麼就讓我們開始吧！`,
     basicInformation: `# 填寫基本資料
 
 要加入社員，請按下方的「📝 輸入基本資料」按鈕，並在填寫完成後按下「送出」。`,
-    payment: `# 付費`,
+    committeeConfirmation: `# 幹部確認
+    
+您的基本資料已經送出了！請讓幹部向您收取 500 元的社費，並等待幹部確認您的資料。`,
   },
 };

@@ -34,7 +34,6 @@ model Member {
 enum RegistrationStep {
   INTRODUCTION
   BASIC_INFORMATION
-  PAYMENT
   COMMITTEE_CONFIRMATION
   COMPLETE
 }
