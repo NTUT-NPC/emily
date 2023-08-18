@@ -1,11 +1,12 @@
-import { getCommands, register } from "./commands/index.js";
-import config from "./config.js";
+import process from "node:process";
 import { PrismaClient } from "@prisma/client";
 import { Client, Events, GatewayIntentBits } from "discord.js";
+import { getCommands, register } from "./commands/index.js";
+import config from "./config.js";
 
 export const prisma = new PrismaClient();
 
-(async () => {
+void (async () => {
   const client = new Client({
     intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildPresences],
   });
@@ -16,7 +17,9 @@ export const prisma = new PrismaClient();
 
   const commands = await getCommands();
   client.on(Events.InteractionCreate, async (interaction) => {
-    if (!interaction.isCommand()) return;
+    if (!interaction.isCommand()) {
+      return;
+    }
 
     const command = commands.get(interaction.commandName);
 
@@ -35,5 +38,5 @@ export const prisma = new PrismaClient();
     console.log(`Registered ${commandCount} commands.`);
   }
 
-  client.login(process.env.DISCORD_BOT_TOKEN);
+  await client.login(process.env.DISCORD_BOT_TOKEN);
 })();

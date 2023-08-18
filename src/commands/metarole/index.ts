@@ -1,14 +1,14 @@
+import type { Interaction } from "discord.js";
+import {
+  PermissionFlagsBits,
+  SlashCommandBuilder,
+} from "discord.js";
 import { prisma } from "../../main.js";
 import type { Command } from "../types.js";
 import executeCreateSubcommand from "./create.js";
 import executeListSubcommand from "./list.js";
 import executeRemoveSubcommand from "./remove.js";
 import executeSyncSubcommand from "./sync.js";
-import {
-  Interaction,
-  PermissionFlagsBits,
-  SlashCommandBuilder,
-} from "discord.js";
 
 const command: Command = {
   data: new SlashCommandBuilder()
@@ -53,7 +53,9 @@ const command: Command = {
     ),
 
   async execute(interaction) {
-    if (!interaction.isChatInputCommand()) return;
+    if (!interaction.isChatInputCommand()) {
+      return;
+    }
 
     const subcommand = interaction.options.getSubcommand();
     switch (subcommand) {
@@ -80,20 +82,26 @@ export async function syncMetarole(
   interaction: Interaction,
   metaroleId: string,
 ) {
-  if (!interaction.isChatInputCommand() || !interaction.inGuild()) return;
+  if (!interaction.isChatInputCommand() || !interaction.inGuild()) {
+    return;
+  }
 
   const metarole = await prisma.metarole.findUnique({
     where: { role: BigInt(metaroleId) },
   });
-  if (!metarole) return;
+  if (!metarole) {
+    return;
+  }
 
   for (const memberRole of metarole.memberRoles) {
     const role = interaction.guild?.roles.cache.get(memberRole.toString());
-    if (!role) continue;
+    if (!role) {
+      continue;
+    }
     console.log(role.name, role.members.keys());
 
     for (const member of role.members.values()) {
-      member.roles.add(metarole.role.toString());
+      await member.roles.add(metarole.role.toString());
     }
   }
 

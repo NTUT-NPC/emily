@@ -1,10 +1,12 @@
-import { prisma } from "../../main.js";
-import { Subcommand } from "../types.js";
-import { syncMetarole } from "./index.js";
 import { MessageMentions } from "discord.js";
+import { prisma } from "../../main.js";
+import type { Subcommand } from "../types.js";
+import { syncMetarole } from "./index.js";
 
 const executeCreateSubcommand: Subcommand = async (interaction) => {
-  if (!interaction.inGuild()) return;
+  if (!interaction.inGuild()) {
+    return;
+  }
 
   const metarole = interaction.options.getRole("群組");
 
@@ -14,7 +16,7 @@ const executeCreateSubcommand: Subcommand = async (interaction) => {
     ?.matchAll(globalRolesPattern);
 
   if (!metarole || !memberRoles) {
-    interaction.reply({ content: "請提供群組和成員", ephemeral: true });
+    await interaction.reply({ content: "請提供群組和成員", ephemeral: true });
     return;
   }
 
@@ -25,7 +27,7 @@ const executeCreateSubcommand: Subcommand = async (interaction) => {
     where: { role: BigInt(metaroleId) },
   });
   if (existingMetarole) {
-    interaction.reply({
+    await interaction.reply({
       content: "這個身份組群組已經存在",
       ephemeral: true,
     });
@@ -40,9 +42,9 @@ const executeCreateSubcommand: Subcommand = async (interaction) => {
     },
   });
 
-  syncMetarole(interaction, metaroleId);
+  await syncMetarole(interaction, metaroleId);
 
-  interaction.reply({
+  await interaction.reply({
     content: `已建立 <@&${metaroleId}> 身份組群組。`,
     ephemeral: true,
     allowedMentions: { parse: [] }, // 不要提及任何人

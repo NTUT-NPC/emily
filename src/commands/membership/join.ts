@@ -1,9 +1,9 @@
+import type { RegistrationStep } from "@prisma/client";
+import type { InteractionReplyOptions, MessageActionRowComponentBuilder, MessageEditOptions, ModalActionRowComponentBuilder } from "discord.js";
+import { ActionRowBuilder, ButtonBuilder, ButtonStyle, DiscordjsErrorCodes, ModalBuilder, TextInputBuilder, TextInputStyle } from "discord.js";
 import { messages } from "../../config.js";
 import { prisma } from "../../main.js";
-import { Subcommand } from "../types.js";
-import { RegistrationStep } from "@prisma/client";
-import { ActionRowBuilder, ButtonBuilder, ButtonStyle, DiscordjsErrorCodes, InteractionReplyOptions, MessageActionRowComponentBuilder, MessageEditOptions, ModalActionRowComponentBuilder, ModalBuilder, TextInputBuilder, TextInputStyle } from "discord.js";
-
+import type { Subcommand } from "../types.js";
 
 const executeJoinSubcommand: Subcommand = async (interaction) => {
   // 簡介 -> 基本資料 -> 付費 -> 幹部確認 -> 成功
@@ -70,10 +70,12 @@ const executeJoinSubcommand: Subcommand = async (interaction) => {
 
           await submission.reply(replies.get("COMMITTEE_CONFIRMATION")!);
         } catch (error) {
-          if (!(error instanceof Error)) throw error;
+          if (!(error instanceof Error)) {
+            throw error;
+          }
 
           let content = messages.defaultError;
-          if (error.name == DiscordjsErrorCodes.InteractionCollectorError) {
+          if (error.name === DiscordjsErrorCodes.InteractionCollectorError) {
             content = messages.join.confirmationTimeout;
           }
           await interaction.editReply(content);
@@ -88,7 +90,7 @@ const executeJoinSubcommand: Subcommand = async (interaction) => {
 
 export default executeJoinSubcommand;
 
-const getIntroductionReply = () => {
+function getIntroductionReply() {
   const next = new ButtonBuilder()
     .setCustomId("introductionNext")
     .setLabel("下一步")
@@ -101,9 +103,9 @@ const getIntroductionReply = () => {
     content: messages.join.introduction,
     components: [actionRow],
   };
-};
+}
 
-const getBasicInformationModal = () => {
+function getBasicInformationModal() {
   // 製作包含文字輸入的對話框專用 ActionRow
   const makeTextInputActionRow = (customId: string, label: string) => {
     const textInput = new TextInputBuilder()
@@ -123,9 +125,9 @@ const getBasicInformationModal = () => {
       makeTextInputActionRow("nameInput", "姓名"),
       makeTextInputActionRow("studentIdInput", "學號"),
     );
-};
+}
 
-const getBasicInformationReply = () => {
+function getBasicInformationReply() {
   const showModal = new ButtonBuilder()
     .setCustomId("basicInformationShowModal")
     .setLabel("輸入基本資料")
@@ -137,12 +139,12 @@ const getBasicInformationReply = () => {
     content: messages.join.basicInformation,
     components: [actionRow],
   };
-};
+}
 
-const getCommitteeConfirmation = () => {
+function getCommitteeConfirmation() {
   // const actionRow = new ActionRowBuilder<MessageActionRowComponentBuilder>();
   return {
     content: messages.join.committeeConfirmation,
     // components: [actionRow],
   };
-};
+}

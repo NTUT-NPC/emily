@@ -1,7 +1,9 @@
+import { readdir } from "node:fs/promises";
+import { join } from "node:path";
+import process from "node:process";
+import type { ApplicationCommand } from "discord.js";
+import { REST, Routes } from "discord.js";
 import type { Command } from "./types.js";
-import { ApplicationCommand, REST, Routes } from "discord.js";
-import { readdir } from "fs/promises";
-import { join } from "path";
 
 export async function getCommands() {
   const commands = new Map<string, Command>();
@@ -9,11 +11,13 @@ export async function getCommands() {
   const commandFiles = await readdir(commandDirUrl);
 
   for (const file of commandFiles) {
-    if (file.startsWith("index") || file.startsWith("types")) continue;
+    if (file.startsWith("index") || file.startsWith("types")) {
+      continue;
+    }
 
     const module = new URL(join(file, "index.js"), commandDirUrl).toString();
-    const { default: command } = await import(module);
-    commands.set(command.data.name, command);
+    const { default: command } = (await import(module)) as { default: Command };
+    commands.set(command.data.name!, command);
   }
 
   return commands;

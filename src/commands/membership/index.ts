@@ -1,6 +1,6 @@
-import { Command } from "../types.js";
-import executeJoinSubcommand from "./join.js";
 import { SlashCommandBuilder } from "discord.js";
+import type { Command } from "../types.js";
+import executeJoinSubcommand from "./join.js";
 
 const command: Command = {
   data: new SlashCommandBuilder()
@@ -11,7 +11,9 @@ const command: Command = {
     ),
 
   async execute(interaction) {
-    if (!interaction.isChatInputCommand()) return;
+    if (!interaction.isChatInputCommand()) {
+      return;
+    }
     const subcommand = interaction.options.getSubcommand();
     switch (subcommand) {
       case "加入":

@@ -1,15 +1,17 @@
 import { prisma } from "../../main.js";
-import { Subcommand } from "../types.js";
+import type { Subcommand } from "../types.js";
 
 const executeListSubcommand: Subcommand = async (interaction) => {
-  if (!interaction.inGuild()) return;
+  if (!interaction.inGuild()) {
+    return;
+  }
 
   const metaroles = await prisma.metarole.findMany({
     where: { guild: BigInt(interaction.guildId) },
   });
 
-  if (metaroles.length == 0) {
-    interaction.reply({
+  if (metaroles.length === 0) {
+    await interaction.reply({
       content: "沒有身份組群組。",
       ephemeral: true,
     });
@@ -33,7 +35,7 @@ const executeListSubcommand: Subcommand = async (interaction) => {
     );
   }
 
-  interaction.reply({
+  await interaction.reply({
     content: replyContent.join(""),
     ephemeral: true,
     allowedMentions: { parse: [] },
