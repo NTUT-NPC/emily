@@ -49,22 +49,16 @@ const executeJoinSubcommand: Subcommand = async (interaction) => {
       case "basicInformationShowModal":
         await interaction.showModal(getBasicInformationModal());
         try {
-          const submission = await interaction.awaitModalSubmit({
-            time: 3_600_000, // 1 hour
-          });
+          const submission = await interaction.awaitModalSubmit({ time: 3_600_000 }); // 1 hour
 
+          // We received the modal submission.
           const getField = (id: string) =>
             submission.fields.getTextInputValue(id);
           const email = getField("emailInput");
           const name = getField("nameInput");
           const studentId = getField("studentIdInput");
           await prisma.member.update({
-            data: {
-              email,
-              name,
-              studentId,
-              registrationStep: "COMMITTEE_CONFIRMATION",
-            },
+            data: { email, name, studentId, registrationStep: "COMMITTEE_CONFIRMATION" },
             where: { discordId: id },
           });
 
@@ -80,6 +74,14 @@ const executeJoinSubcommand: Subcommand = async (interaction) => {
           }
           await interaction.editReply(content);
         }
+        break;
+
+      case "committeeConfirmationEdit":
+        await prisma.member.update({
+          data: { registrationStep: "BASIC_INFORMATION" },
+          where: { discordId: id },
+        });
+        await interaction.reply(replies.get("BASIC_INFORMATION")!);
         break;
 
       default:
@@ -142,9 +144,15 @@ function getBasicInformationReply() {
 }
 
 function getCommitteeConfirmation() {
-  // const actionRow = new ActionRowBuilder<MessageActionRowComponentBuilder>();
+  const editButton = new ButtonBuilder()
+    .setCustomId("committeeConfirmationEdit")
+    .setLabel("修改資料")
+    .setStyle(ButtonStyle.Primary)
+    .setEmoji("📝");
+  const actionRow = new ActionRowBuilder<MessageActionRowComponentBuilder>()
+    .addComponents(editButton);
   return {
     content: messages.join.committeeConfirmation,
-    // components: [actionRow],
+    components: [actionRow],
   };
 }
