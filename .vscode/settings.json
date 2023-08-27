@@ -17,5 +17,6 @@
     "json",
     "jsonc",
     "yaml"
-  ]
+  ],
+  "eslint.run": "onSave"
 }
