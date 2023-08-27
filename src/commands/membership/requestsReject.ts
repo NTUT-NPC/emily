@@ -1,0 +1,34 @@
+import { RegistrationStep } from "@prisma/client";
+import { prisma } from "../../main.js";
+import type { Subcommand } from "../types.js";
+import { messages } from "../../config.js";
+
+const executeRequestsReject: Subcommand = async (interaction) => {
+  if (!interaction.inGuild()) {
+    await interaction.reply("請在伺服器內使用此指令");
+    return;
+  }
+
+  const requester = interaction.options.getUser("使用者", true);
+  const reason = interaction.options.getString("原因", true);
+  const discordId = BigInt(requester.id);
+
+  const member = await prisma.member.findUnique({ where: { discordId } });
+  if (!member) {
+    await interaction.reply({ content: messages.error.notInDatabase, ephemeral: true });
+    return;
+  }
+  if (member?.registrationStep !== RegistrationStep.COMMITTEE_CONFIRMATION) {
+    await interaction.reply({ content: messages.error.notAwaitingConfirmation, ephemeral: true });
+    return;
+  }
+
+  await prisma.member.update({
+    data: { registrationStep: RegistrationStep.BASIC_INFORMATION },
+    where: { discordId },
+  });
+  await requester.send(messages.join.reject(reason));
+  await interaction.reply(`已拒絕 <@${requester.id}> 的加入請求，理由：${reason}。`);
+};
+
+export default executeRequestsReject;
