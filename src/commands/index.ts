@@ -1,8 +1,9 @@
 import { readdir } from "node:fs/promises";
 import { join } from "node:path";
 import process from "node:process";
-import type { ApplicationCommand } from "discord.js";
-import { REST, Routes } from "discord.js";
+import type { ApplicationCommand, MessageComponentInteraction, ModalActionRowComponentBuilder, ModalBuilder } from "discord.js";
+import { ActionRowBuilder, DiscordjsErrorCodes, REST, Routes, TextInputBuilder, TextInputStyle } from "discord.js";
+import { messages } from "../config.js";
 import type { Command } from "./types.js";
 
 export async function getCommands() {
@@ -41,4 +42,34 @@ export async function register() {
   )) as ApplicationCommand[];
 
   return data.length;
+}
+
+// 製作包含文字輸入的對話框專用 ActionRow
+export function makeTextInputActionRow(customId: string, label: string) {
+  const textInput = new TextInputBuilder()
+    .setCustomId(customId)
+    .setLabel(label)
+    .setStyle(TextInputStyle.Short);
+  const row = new ActionRowBuilder<ModalActionRowComponentBuilder>();
+  row.addComponents(textInput);
+  return row;
+}
+
+export async function showAndAwaitModal(interaction: MessageComponentInteraction, modal: ModalBuilder) {
+  await interaction.showModal(modal);
+
+  try {
+    return await interaction.awaitModalSubmit({ time: 3_600_000 }); // 1 hour
+  } catch (error) {
+    if (!(error instanceof Error)) {
+      throw error;
+    }
+
+    let content = messages.defaultError;
+    if (error.name === DiscordjsErrorCodes.InteractionCollectorError) {
+      content = messages.join.confirmationTimeout;
+    }
+    await interaction.editReply(content);
+    return null;
+  }
 }

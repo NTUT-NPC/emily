@@ -24,6 +24,7 @@ model Member {
   id Int @id @default(autoincrement())
   createdAt DateTime @default(now())
   joinedAt DateTime?
+  notificationSentAt DateTime?
   registrationStep RegistrationStep @default(INTRODUCTION)
   discordId BigInt @unique
   name String?
