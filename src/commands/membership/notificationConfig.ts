@@ -1,9 +1,10 @@
 import { ChannelType, PermissionsBitField } from "discord.js";
 import type { Subcommand } from "../types.js";
+import { messages } from "../../config.js";
 
 const executeNotificationConfigSubcommand: Subcommand = async (interaction) => {
   if (!interaction.inGuild()) {
-    await interaction.reply("請在伺服器內使用此指令");
+    await interaction.reply(messages.error.useInGuild);
     return;
   }
 

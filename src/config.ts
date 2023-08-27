@@ -23,6 +23,7 @@ interface Messages {
     generic: string;
     notInDatabase: string;
     notAwaitingConfirmation: string;
+    useInGuild: string;
   };
   join: {
     useDirectMessage: string;
@@ -44,6 +45,7 @@ export const messages: Messages = {
     generic: "糟糕，看來出了些小問題。請把這個問題回報給<@132112879439708160>，謝謝！",
     notInDatabase: "資料庫中沒有這個使用者。",
     notAwaitingConfirmation: "這個使用者並沒有等待幹部確認的加入請求。",
+    useInGuild: "請在伺服器內使用這個指令。",
   },
   join: {
     useDirectMessage: "歡迎您加入我們！建議您私訊我以確保您的隱私喔！",

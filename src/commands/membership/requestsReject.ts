@@ -5,7 +5,7 @@ import { messages } from "../../config.js";
 
 const executeRequestsReject: Subcommand = async (interaction) => {
   if (!interaction.inGuild()) {
-    await interaction.reply("請在伺服器內使用此指令");
+    await interaction.reply(messages.error.useInGuild);
     return;
   }
 
