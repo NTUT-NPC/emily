@@ -37,7 +37,7 @@
 
 ## 部屬
 
-你可以用 `Dockerfile` 和在 Docker 部屬這個機器人。大略步驟如下：
+你可以用 `Dockerfile` 和 `examples` 目錄的各種範例 `compose.yaml` 在 Docker 部屬這個機器人。大略步驟如下：
 
 ```sh
 git clone https://github.com/NTUT-NPC/emily
