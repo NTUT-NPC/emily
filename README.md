@@ -31,12 +31,6 @@
 [typescript]: https://www.typescriptlang.org/
 [prisma]: https://www.prisma.io/
 
-### TS-Node 錯誤臨時解方
-
-使用 `ts-node-dev` 開發工具時因為會遇到 [這個問題][ts-node#2000] 無法執行 `pnpm dev`。繞過這個錯誤的臨時解方是先執行 `pnpm ts-node-workaround` 再執行 `pnpm dev`。記得在修改 `tsconfig.json` 後重新執行這個臨時解方，變更才會生效。
-
-[ts-node#2000]: https://github.com/TypeStrong/ts-node/issues/2000
-
 ### 斜線指令
 
 所有斜線指令位於 `src/commands`（`index.ts` 與 `types.ts` 除外）。要增加斜線指令，請在 `src/commands` 新增一個預設匯出 `Command` 型別的檔案。`Command` 型別可以在 `src/commands/types.ts` 找到。
