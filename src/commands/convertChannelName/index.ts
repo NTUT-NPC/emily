@@ -18,7 +18,7 @@ const command: Command = {
 
     const originalName = interaction.options.getString("頻道名稱");
     if (!originalName) {
-      await interaction.reply({ content: messages.defaultError, ephemeral: true });
+      await interaction.reply({ content: messages.error.generic, ephemeral: true });
       return;
     }
 

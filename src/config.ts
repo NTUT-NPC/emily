@@ -19,14 +19,19 @@ const config: Config = {
 export default config;
 
 interface Messages {
-  defaultError: string;
+  error: {
+    generic: string;
+    notInDatabase: string;
+    notAwaitingConfirmation: string;
+  };
   join: {
     useDirectMessage: string;
     confirmationTimeout: string;
     introduction: string;
     basicInformation: string;
     committeeConfirmation: string;
-    complete: string;
+    accept: string;
+    reject: (reason: string) => string;
     alreadyJoined: string;
     notificationSent: string;
     notificationTimeout: (notificationSentDate: Date) => string;
@@ -35,8 +40,11 @@ interface Messages {
 }
 
 export const messages: Messages = {
-  defaultError:
-    "糟糕，看來出了些小問題。請把這個問題回報給<@132112879439708160>，謝謝！",
+  error: {
+    generic: "糟糕，看來出了些小問題。請把這個問題回報給<@132112879439708160>，謝謝！",
+    notInDatabase: "資料庫中沒有這個使用者。",
+    notAwaitingConfirmation: "這個使用者並沒有等待幹部確認的加入請求。",
+  },
   join: {
     useDirectMessage: "歡迎您加入我們！建議您私訊我以確保您的隱私喔！",
     confirmationTimeout: "timeout",
@@ -62,7 +70,10 @@ export const messages: Messages = {
     committeeConfirmation: `# 幹部確認
     
 您的基本資料已經送出，我也已經通知幹部了！請讓幹部向您收取 500 元的社費，並等待幹部確認您的資料。`,
-    complete: "恭喜您！您已經成功加入社團！我會分配幹部身份組給您，如果沒有得到身份組，請聯絡幹部。",
+    accept: "恭喜您！您已經成功加入社團！我會分配幹部身份組給您，如果沒有得到身份組，請聯絡幹部。",
+    reject(reason) {
+      return `很抱歉，您的加入請求被拒絕了。理由：${reason}\n（您可以輸入「/社員 加入」再試一次）`;
+    },
     alreadyJoined: "您已經成功加入社團！",
     notificationSent: "已通知幹部，請等待幹部確認。",
     notificationTimeout(notificationSentDate) {

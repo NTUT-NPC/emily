@@ -65,7 +65,7 @@ export async function showAndAwaitModal(interaction: MessageComponentInteraction
       throw error;
     }
 
-    let content = messages.defaultError;
+    let content = messages.error.generic;
     if (error.name === DiscordjsErrorCodes.InteractionCollectorError) {
       content = messages.join.confirmationTimeout;
     }
