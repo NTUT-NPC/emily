@@ -12,7 +12,7 @@
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "dependencies": {
-    "@prisma/client": "5.0.0",
+    "@prisma/client": "5.2.0",
     "discord.js": "^14.13.0",
     "dotenv": "^16.3.1",
     "prisma": "^5.2.0"
