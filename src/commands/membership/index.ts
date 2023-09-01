@@ -1,4 +1,5 @@
-import { SlashCommandBuilder } from "discord.js";
+import type { ChatInputCommandInteraction } from "discord.js";
+import { PermissionsBitField, SlashCommandBuilder } from "discord.js";
 import type { Command } from "../types.js";
 import executeJoinSubcommand from "./join.js";
 import executeNotificationConfigSubcommand from "./notificationConfig.js";
@@ -84,3 +85,8 @@ const command: Command = {
 };
 
 export default command;
+
+export function hasManageRolesPermission(interaction: ChatInputCommandInteraction) {
+  return !interaction.guild?.members.cache.get(interaction.user.id)
+    ?.permissions.has(PermissionsBitField.Flags.ManageRoles);
+}

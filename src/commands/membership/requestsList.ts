@@ -2,10 +2,16 @@ import { RegistrationStep } from "@prisma/client";
 import { prisma } from "../../main.js";
 import type { Subcommand } from "../types.js";
 import { messages } from "../../config.js";
+import { hasManageRolesPermission } from "./index.js";
 
 const executeRequestsList: Subcommand = async (interaction) => {
   if (!interaction.inGuild()) {
     await interaction.reply(messages.error.useInGuild);
+    return;
+  }
+
+  if (hasManageRolesPermission(interaction)) {
+    await interaction.reply("必須有管理身份組的權限");
     return;
   }
 
