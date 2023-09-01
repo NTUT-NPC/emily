@@ -20,7 +20,7 @@ const executeNotificationConfigSubcommand: Subcommand = async (interaction) => {
     await interaction.reply({ content: "請選擇伺服器中的文字頻道。", ephemeral: true });
     return;
   }
-  const role = interaction.options.getRole("身份組", true);
+  // const role = interaction.options.getRole("身份組", true);
 
   await interaction.reply({ content: "尚未實作，請直接設定 config.ts。", ephemeral: true });
 };
