@@ -7,6 +7,8 @@ const executeSyncSubcommand: Subcommand = async (interaction) => {
     return;
   }
 
+  await interaction.deferReply({ ephemeral: true });
+
   const metaroles = await prisma.metarole.findMany({
     where: { guild: BigInt(interaction.guildId) },
   });
@@ -15,10 +17,7 @@ const executeSyncSubcommand: Subcommand = async (interaction) => {
     await syncMetarole(interaction, metarole.role.toString());
   }
 
-  await interaction.reply({
-    content: "已同步所有身份組群組。",
-    ephemeral: true,
-  });
+  await interaction.editReply("已同步所有身份組群組。");
 };
 
 export default executeSyncSubcommand;
