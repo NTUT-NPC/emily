@@ -31,6 +31,8 @@ const executeRequestsAccept: Subcommand = async (interaction) => {
     return;
   }
 
+  await interaction.deferReply();
+
   await prisma.member.update({
     data: { registrationStep: RegistrationStep.COMPLETE },
     where: { discordId },

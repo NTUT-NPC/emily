@@ -34,6 +34,8 @@ const executeCreateSubcommand: Subcommand = async (interaction) => {
     return;
   }
 
+  await interaction.deferReply({ ephemeral: true });
+
   await prisma.metarole.create({
     data: {
       guild: BigInt(interaction.guildId),
@@ -46,7 +48,6 @@ const executeCreateSubcommand: Subcommand = async (interaction) => {
 
   await interaction.reply({
     content: `已建立 <@&${metaroleId}> 身份組群組。`,
-    ephemeral: true,
     allowedMentions: { parse: [] }, // 不要提及任何人
   });
 };

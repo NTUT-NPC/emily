@@ -6,6 +6,8 @@ const executeListSubcommand: Subcommand = async (interaction) => {
     return;
   }
 
+  await interaction.deferReply({ ephemeral: true });
+
   const metaroles = await prisma.metarole.findMany({
     where: { guild: BigInt(interaction.guildId) },
   });
@@ -13,7 +15,6 @@ const executeListSubcommand: Subcommand = async (interaction) => {
   if (metaroles.length === 0) {
     await interaction.reply({
       content: "沒有身份組群組。",
-      ephemeral: true,
     });
     return;
   }
@@ -37,7 +38,6 @@ const executeListSubcommand: Subcommand = async (interaction) => {
 
   await interaction.reply({
     content: replyContent.join(""),
-    ephemeral: true,
     allowedMentions: { parse: [] },
   });
 };

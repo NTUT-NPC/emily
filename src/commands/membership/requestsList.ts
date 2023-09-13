@@ -15,6 +15,8 @@ const executeRequestsList: Subcommand = async (interaction) => {
     return;
   }
 
+  await interaction.deferReply();
+
   const requests = await prisma.member.findMany({
     where: { registrationStep: RegistrationStep.COMMITTEE_CONFIRMATION },
   });

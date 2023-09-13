@@ -29,6 +29,8 @@ const executeRequestsReject: Subcommand = async (interaction) => {
     return;
   }
 
+  await interaction.deferReply();
+
   await prisma.member.update({
     data: { registrationStep: RegistrationStep.BASIC_INFORMATION },
     where: { discordId },

@@ -12,6 +12,8 @@ const executeRemoveSubcommand: Subcommand = async (interaction) => {
     return;
   }
 
+  await interaction.deferReply({ ephemeral: true });
+
   const metaroleEntry = await prisma.metarole.findUnique({
     where: { role: BigInt(metarole.id) },
   });
@@ -28,7 +30,6 @@ const executeRemoveSubcommand: Subcommand = async (interaction) => {
   });
   await interaction.reply({
     content: `已移除 <@&${metarole.id}> 身份組群組。`,
-    ephemeral: true,
     allowedMentions: { parse: [] }, // 不要提及任何人
   });
 };
