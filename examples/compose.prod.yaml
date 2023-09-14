@@ -13,3 +13,21 @@ services:
     restart: unless-stopped
     environment:
       POSTGRES_PASSWORD: password
+
+  # Connect to adminer with http://emily-db.example.com/
+  adminer:
+    container_name: emily-adminer
+    image: adminer
+    restart: unless-stopped
+    expose:
+      - "80"
+    environment:
+      - VIRTUAL_HOST=emily-db.example.com
+    networks:
+      - proxy
+      - default
+
+networks:
+  proxy:
+    name: proxy
+    external: true
