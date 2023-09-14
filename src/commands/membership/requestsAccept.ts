@@ -34,7 +34,10 @@ const executeRequestsAccept: Subcommand = async (interaction) => {
   await interaction.deferReply();
 
   await prisma.member.update({
-    data: { registrationStep: RegistrationStep.COMPLETE },
+    data: { 
+      registrationStep: RegistrationStep.COMPLETE,
+      joinedAt: new Date(),
+    },
     where: { discordId },
   });
   const membershipRole = interaction.guild!.roles.cache.get(config.membershipRoleId)!;
