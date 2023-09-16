@@ -48,8 +48,12 @@ cp examples/.env .
 docker compose up -d
 ```
 
+到 [Discord Developers][discord-developers] 網站建立一個機器人。啟用 `Privileged Gateway Intents` 中的 `Presence Intent` 和 `Server Members Intent`。
+
 最後，用邀請連結來將機器人加入您的Discord伺服器。將「你的\_Client_ID」替換為您機器人的 Client ID：
 
 ```url
 https://discord.com/api/oauth2/authorize?client_id=你的_Client_ID&permissions=268437504&scope=bot%20applications.commands
 ```
+
+[discord-developers]: https://discord.com/developers/applications
