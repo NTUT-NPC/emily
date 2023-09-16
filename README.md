@@ -23,6 +23,7 @@
 
 ### 技術棧
 
+- [Bun][bun]: JavaScript 執行環境和套件管理工具
 - [Discord.js][discord.js]：Discord API 的 Node.js 實作
 - [TypeScript][typescript]：JavaScript 的超集，提供型別檢查和其他語言功能
 - [Prisma][prisma]：資料庫存取工具
@@ -30,6 +31,7 @@
 [discord.js]: https://discord.js.org/
 [typescript]: https://www.typescriptlang.org/
 [prisma]: https://www.prisma.io/
+[bun]: https://bun.sh/
 
 ### 斜線指令
 
@@ -48,6 +50,8 @@ cp examples/.env .
 docker compose up -d
 ```
 
+由於一個 [Bun 的問題][oven-sh/bun#5320]，資料庫遷移可能不會執行，導致 `prisma` 找不到 `emily` 資料庫。此時你需要手動執行 `bun x prisma migrate deploy` 後再試一次。
+
 到 [Discord Developers][discord-developers] 網站建立一個機器人。啟用 `Privileged Gateway Intents` 中的 `Presence Intent` 和 `Server Members Intent`。
 
 最後，用邀請連結來將機器人加入您的Discord伺服器。將「你的\_Client_ID」替換為您機器人的 Client ID：
@@ -57,3 +61,4 @@ https://discord.com/api/oauth2/authorize?client_id=你的_Client_ID&permissions=
 ```
 
 [discord-developers]: https://discord.com/developers/applications
+[oven-sh/bun#5320]: https://github.com/oven-sh/bun/issues/5320

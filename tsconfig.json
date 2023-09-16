@@ -1,7 +1,7 @@
 {
   "extends": [
     "@tsconfig/strictest/tsconfig.json",
-    "@tsconfig/node-lts/tsconfig.json"
+    "@tsconfig/bun/tsconfig.json"
   ],
   "include": ["src/**/*"],
   "compilerOptions": {

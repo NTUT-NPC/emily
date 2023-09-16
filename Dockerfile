@@ -1,26 +1,25 @@
-# Add pnpm to base image
-FROM node:18 as base
-RUN npm install --global pnpm
+FROM node:alpine as build
 
-FROM base as build
-WORKDIR /usr/src/app
+COPY prisma prisma
+COPY package.json .
+RUN npm install --omit=dev
+RUN npx prisma generate
 
-# Install app dependencies and build
-COPY ./ ./
-RUN pnpm install
-RUN pnpm build
-RUN pnpm prune --prod
-
-
-FROM base as deploy
+FROM oven/bun as production
 WORKDIR /usr/src/app
 
 # Tell the app we are in docker
 ENV DOCKER true
 
-COPY --from=build /usr/src/app/dist ./dist
-COPY --from=build /usr/src/app/node_modules ./node_modules
-COPY package.json .env prisma ./
+# Workaround for https://github.com/oven-sh/bun/issues/4847 and https://github.com/oven-sh/bun/issues/5320
+COPY --from=build node_modules/.prisma node_modules/.prisma
+
+COPY prisma prisma
+COPY src src
+COPY .env .
+COPY bun.lockb .
+COPY package.json .
+RUN bun install --production
 
 EXPOSE 80
-CMD [ "pnpm", "start" ]
+CMD [ "bun", "run", "start" ]
