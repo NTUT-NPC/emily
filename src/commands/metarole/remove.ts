@@ -18,17 +18,14 @@ const executeRemoveSubcommand: Subcommand = async (interaction) => {
     where: { role: BigInt(metarole.id) },
   });
   if (!metaroleEntry) {
-    await interaction.reply({
-      content: "這個身份組群組不存在",
-      ephemeral: true,
-    });
+    await interaction.editReply("這個身份組群組不存在");
     return;
   }
 
   await prisma.metarole.delete({
     where: { role: BigInt(metarole.id) },
   });
-  await interaction.reply({
+  await interaction.editReply({
     content: `已移除 <@&${metarole.id}> 身份組群組。`,
     allowedMentions: { parse: [] }, // 不要提及任何人
   });

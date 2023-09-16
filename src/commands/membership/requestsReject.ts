@@ -36,7 +36,7 @@ const executeRequestsReject: Subcommand = async (interaction) => {
     where: { discordId },
   });
   await requester.send(messages.join.reject(reason));
-  await interaction.reply(`已拒絕 <@${requester.id}> 的加入請求，理由：${reason}。`);
+  await interaction.editReply(`已拒絕 <@${requester.id}> 的加入請求，理由：${reason}。`);
 };
 
 export default executeRequestsReject;

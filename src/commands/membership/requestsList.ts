@@ -27,7 +27,7 @@ const executeRequestsList: Subcommand = async (interaction) => {
     return `<@${discordId}> ${relativeNotificationDate}: \`${email}\`, \`${name}\`, \`${studentId}\``;
   });
 
-  await interaction.reply(
+  await interaction.editReply(
     `目前有 ${requests.length} 位使用者正在等待幹部確認${requests.length ? "：" : "。"}
 ${requests.length ? "（`電子郵件`, `姓名`, `學號`）" : ""}
 ${requestList.join("\n")}`,

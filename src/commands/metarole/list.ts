@@ -36,7 +36,7 @@ const executeListSubcommand: Subcommand = async (interaction) => {
     );
   }
 
-  await interaction.reply({
+  await interaction.editReply({
     content: replyContent.join(""),
     allowedMentions: { parse: [] },
   });

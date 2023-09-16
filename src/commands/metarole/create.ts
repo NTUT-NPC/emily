@@ -46,7 +46,7 @@ const executeCreateSubcommand: Subcommand = async (interaction) => {
 
   await syncMetarole(interaction, metaroleId);
 
-  await interaction.reply({
+  await interaction.editReply({
     content: `已建立 <@&${metaroleId}> 身份組群組。`,
     allowedMentions: { parse: [] }, // 不要提及任何人
   });

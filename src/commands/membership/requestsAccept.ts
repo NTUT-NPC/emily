@@ -23,7 +23,7 @@ const executeRequestsAccept: Subcommand = async (interaction) => {
 
   const member = await prisma.member.findUnique({ where: { discordId } });
   if (!member) {
-    await interaction.reply(messages.error.generic);
+    await interaction.reply({ content: messages.error.notInDatabase, ephemeral: true });
     return;
   }
   if (member.registrationStep !== RegistrationStep.COMMITTEE_CONFIRMATION) {
@@ -34,7 +34,7 @@ const executeRequestsAccept: Subcommand = async (interaction) => {
   await interaction.deferReply();
 
   await prisma.member.update({
-    data: { 
+    data: {
       registrationStep: RegistrationStep.COMPLETE,
       joinedAt: new Date(),
     },
@@ -43,7 +43,7 @@ const executeRequestsAccept: Subcommand = async (interaction) => {
   const membershipRole = interaction.guild!.roles.cache.get(config.membershipRoleId)!;
   await requester.roles.add(membershipRole);
   await requester.send(messages.join.accept);
-  await interaction.reply(`已接受 <@${requester.id}> 的加入請求。`);
+  await interaction.editReply(`已接受 <@${requester.id}> 的加入請求。`);
 };
 
 export default executeRequestsAccept;
