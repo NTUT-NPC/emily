@@ -1,8 +1,8 @@
 {
   "name": "emily-js",
   "type": "module",
-  "version": "1.0.0",
-  "description": "",
+  "version": "0.1.0",
+  "description": "北科程式設計研究社 (NPC) 的 Discord 社群管理工具，舊 Emily 的 Discord.js 重製版。",
   "scripts": {
     "start": "prisma migrate deploy && cp .env dist && cd dist && node --require dotenv/config main.js",
     "dev": "nodemon --ext js,ts,env --exec ts-node-esm --swc --require dotenv/config src/main.ts",
