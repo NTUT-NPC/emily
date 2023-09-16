@@ -20,9 +20,11 @@ services:
     image: adminer
     restart: unless-stopped
     expose:
-      - "80"
+      - "8080"
     environment:
       - VIRTUAL_HOST=emily-db.example.com
+      - LETSENCRYPT_HOST=emily-db.example.com
+      - LETSENCRYPT_EMAIL=you@example.com
     networks:
       - proxy
       - default
