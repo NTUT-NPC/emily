@@ -7,7 +7,7 @@ const executeSyncSubcommand: Subcommand = async (interaction) => {
     return;
   }
 
-  await interaction.deferReply({ ephemeral: true });
+  await interaction.deferReply();
 
   const metaroles = await prisma.metarole.findMany({
     where: { guild: BigInt(interaction.guildId) },

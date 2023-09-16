@@ -6,16 +6,14 @@ const executeListSubcommand: Subcommand = async (interaction) => {
     return;
   }
 
-  await interaction.deferReply({ ephemeral: true });
+  await interaction.deferReply();
 
   const metaroles = await prisma.metarole.findMany({
     where: { guild: BigInt(interaction.guildId) },
   });
 
   if (metaroles.length === 0) {
-    await interaction.reply({
-      content: "沒有身份組群組。",
-    });
+    await interaction.editReply("沒有身份組群組。");
     return;
   }
 

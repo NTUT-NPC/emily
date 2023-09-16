@@ -34,7 +34,7 @@ const executeCreateSubcommand: Subcommand = async (interaction) => {
     return;
   }
 
-  await interaction.deferReply({ ephemeral: true });
+  await interaction.deferReply();
 
   await prisma.metarole.create({
     data: {

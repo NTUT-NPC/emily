@@ -12,7 +12,7 @@ const executeRemoveSubcommand: Subcommand = async (interaction) => {
     return;
   }
 
-  await interaction.deferReply({ ephemeral: true });
+  await interaction.deferReply();
 
   const metaroleEntry = await prisma.metarole.findUnique({
     where: { role: BigInt(metarole.id) },
