@@ -1,10 +1,16 @@
 import process from "node:process";
 import { PrismaClient } from "@prisma/client";
 import { Client, Events, GatewayIntentBits } from "discord.js";
+import pino from "pino";
 import { getCommands, register } from "./commands/index.js";
 import config from "./config.js";
 
 export const prisma = new PrismaClient();
+export const logger = pino({
+  transport: {
+    target: "pino-pretty",
+  },
+});
 
 void (async () => {
   const client = new Client({
@@ -12,7 +18,7 @@ void (async () => {
   });
 
   client.once(Events.ClientReady, (c) => {
-    console.log(`Ready! Logged in as ${c.user.tag}`);
+    logger.info(`Ready! Logged in as ${c.user.tag}`);
   });
 
   const commands = await getCommands();
@@ -24,9 +30,7 @@ void (async () => {
     const command = commands.get(interaction.commandName);
 
     if (!command) {
-      console.error(
-        `No command matching ${interaction.commandName} was found.`,
-      );
+      logger.error(`No command matching ${interaction.commandName} was found.`);
       return;
     }
 
@@ -35,7 +39,7 @@ void (async () => {
 
   if (config.registerCommands) {
     const commandCount = await register();
-    console.log(`Registered ${commandCount} commands.`);
+    logger.info(`Registered ${commandCount} commands.`);
   }
 
   await client.login(process.env.DISCORD_BOT_TOKEN);

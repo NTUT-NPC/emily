@@ -2,7 +2,8 @@
   "typescript.tsdk": "node_modules/typescript/lib",
   "cSpell.words": [
     "metarole",
-    "metaroles"
+    "metaroles",
+    "pino"
   ],
   "prettier.enable": false,
   "editor.formatOnSave": false,

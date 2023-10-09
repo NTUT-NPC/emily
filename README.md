@@ -27,11 +27,13 @@
 - [Discord.js][discord.js]：Discord API 的 Node.js 實作
 - [TypeScript][typescript]：JavaScript 的超集，提供型別檢查和其他語言功能
 - [Prisma][prisma]：資料庫存取工具
+- [Pino][pino]：日誌工具
 
 [discord.js]: https://discord.js.org/
 [typescript]: https://www.typescriptlang.org/
 [prisma]: https://www.prisma.io/
 [bun]: https://bun.sh/
+[pino]: https://getpino.io/
 
 ### 斜線指令
 

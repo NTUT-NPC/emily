@@ -11,6 +11,5 @@ module.exports = {
     "@typescript-eslint/brace-style": ["error", "1tbs"],
     "curly": ["error", "multi-line"],
     "arrow-parens": ["error", "always"],
-    "no-console": ["off"],
   },
 };

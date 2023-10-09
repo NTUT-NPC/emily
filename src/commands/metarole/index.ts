@@ -98,7 +98,6 @@ export async function syncMetarole(
     if (!role) {
       continue;
     }
-    console.log(role.name, role.members.keys());
 
     for (const member of role.members.values()) {
       await member.roles.add(metarole.role.toString());
