@@ -5,7 +5,7 @@ import { ActionRowBuilder, ButtonBuilder, ButtonStyle, ModalBuilder } from "disc
 import config, { messages } from "../../config.js";
 import { prisma } from "../../main.js";
 import type { Subcommand } from "../types.js";
-import { makeTextInputActionRow, showAndAwaitModal } from "../index.js";
+import { makeTextInputActionRow, showModalAndGetSubmission } from "../index.js";
 
 const executeJoinSubcommand: Subcommand = async (interaction) => {
   // 這個指令限私訊使用
@@ -58,21 +58,19 @@ const executeJoinSubcommand: Subcommand = async (interaction) => {
           return;
         }
 
-        const submission = await showAndAwaitModal(interaction, getBasicInformationModal());
-        if (submission) {
-          const email = submission.fields.getTextInputValue("emailInput");
-          const name = submission.fields.getTextInputValue("nameInput");
-          const studentId = submission.fields.getTextInputValue("studentIdInput");
-          member = await prisma.member.update({
-            data: { email, name, studentId, registrationStep: RegistrationStep.COMMITTEE_CONFIRMATION },
-            where: { discordId },
-          });
+        const submission = await showModalAndGetSubmission(interaction, getBasicInformationModal());
+        const email = submission.fields.getTextInputValue("emailInput");
+        const name = submission.fields.getTextInputValue("nameInput");
+        const studentId = submission.fields.getTextInputValue("studentIdInput");
+        member = await prisma.member.update({
+          data: { email, name, studentId, registrationStep: RegistrationStep.COMMITTEE_CONFIRMATION },
+          where: { discordId },
+        });
 
-          if (canSendNotification(member)) {
-            await sendNotification(member, notificationChannel);
-          }
-          await submission.reply(replies.get(RegistrationStep.COMMITTEE_CONFIRMATION)!);
+        if (canSendNotification(member)) {
+          await sendNotification(member, notificationChannel);
         }
+        await submission.reply(replies.get(RegistrationStep.COMMITTEE_CONFIRMATION)!);
         break;
       }
 
@@ -219,19 +217,17 @@ async function sendNotification(member: Member, channel: TextChannel) {
           .setTitle("輸入理由")
           .addComponents(makeTextInputActionRow("rejectReasonInput", "請輸入完整的拒絕理由，這會傳送給請求加入者。他會回到「填寫基本資料」步驟。"));
 
-        const submission = await showAndAwaitModal(interaction, rejectReasonModal);
-        if (submission) {
-          // Notify the requester and change the registration step.
-          const reason = submission.fields.getTextInputValue("rejectReasonInput");
-          member = await prisma.member.update({
-            data: { registrationStep: RegistrationStep.BASIC_INFORMATION },
-            where: { discordId: member.discordId },
-          });
-          await requester.send(messages.join.reject(reason));
-          await submission.reply(
+        // Notify the requester and change the registration step.
+        const submission = await showModalAndGetSubmission(interaction, rejectReasonModal);
+        const reason = submission.fields.getTextInputValue("rejectReasonInput");
+        member = await prisma.member.update({
+          data: { registrationStep: RegistrationStep.BASIC_INFORMATION },
+          where: { discordId: member.discordId },
+        });
+        await requester.send(messages.join.reject(reason));
+        await submission.reply(
             `<@${submission.user.id}> 已拒絕 <@${member.discordId}> 的加入請求，理由：${reason}。`,
-          );
-        }
+        );
 
         break;
       }

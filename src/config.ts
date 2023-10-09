@@ -24,10 +24,10 @@ interface Messages {
     notInDatabase: string;
     notAwaitingConfirmation: string;
     useInGuild: string;
+    modalTimeout: string;
   };
   join: {
     useDirectMessage: string;
-    confirmationTimeout: string;
     introduction: string;
     basicInformation: string;
     committeeConfirmation: string;
@@ -46,10 +46,10 @@ export const messages: Messages = {
     notInDatabase: "資料庫中沒有這個使用者。",
     notAwaitingConfirmation: "這個使用者並沒有等待幹部確認的加入請求。",
     useInGuild: "請在伺服器內使用這個指令。",
+    modalTimeout: "您似乎開啟這個對話框了太久了，請再試一次。",
   },
   join: {
     useDirectMessage: "歡迎您加入我們！建議您私訊我以確保您的隱私喔！",
-    confirmationTimeout: "timeout",
     introduction: `# 加入社員
 很高興您願意加入我們！
 

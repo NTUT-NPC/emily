@@ -1,9 +1,10 @@
 import { readdir } from "node:fs/promises";
 import { join } from "node:path";
 import process from "node:process";
-import type { ApplicationCommand, MessageComponentInteraction, ModalActionRowComponentBuilder, ModalBuilder } from "discord.js";
+import type { ApplicationCommand, MessageComponentInteraction, ModalActionRowComponentBuilder, ModalBuilder, ModalSubmitInteraction } from "discord.js";
 import { ActionRowBuilder, DiscordjsErrorCodes, REST, Routes, TextInputBuilder, TextInputStyle } from "discord.js";
 import { messages } from "../config.js";
+import { logger } from "../main.js";
 import type { Command } from "./types.js";
 
 export async function getCommands() {
@@ -55,11 +56,14 @@ export function makeTextInputActionRow(customId: string, label: string) {
   return row;
 }
 
-export async function showAndAwaitModal(interaction: MessageComponentInteraction, modal: ModalBuilder) {
-  await interaction.showModal(modal);
-
+export async function showModalAndGetSubmission(interaction: MessageComponentInteraction, modalBuilder: ModalBuilder): Promise<ModalSubmitInteraction> {
+  await interaction.showModal(modalBuilder);
   try {
-    return await interaction.awaitModalSubmit({ time: 3_600_000 }); // 1 hour
+    const submission = await interaction.awaitModalSubmit({
+      time: 3_600_000, // 1 hour
+      filter: (i) => i.user.id === interaction.user.id,
+    });
+    return submission;
   } catch (error) {
     if (!(error instanceof Error)) {
       throw error;
@@ -67,9 +71,10 @@ export async function showAndAwaitModal(interaction: MessageComponentInteraction
 
     let content = messages.error.generic;
     if (error.name === DiscordjsErrorCodes.InteractionCollectorError) {
-      content = messages.join.confirmationTimeout;
+      content = messages.error.modalTimeout;
     }
     await interaction.editReply(content);
-    return null;
+    logger.error(error);
+    throw error;
   }
 }
