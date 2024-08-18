@@ -3,14 +3,14 @@ import {
   PermissionFlagsBits,
   SlashCommandBuilder,
 } from "discord.js";
-import { prisma } from "../../main";
-import type { Command } from "../types";
 import executeCreateSubcommand from "./create";
 import executeListSubcommand from "./list";
 import executeRemoveSubcommand from "./remove";
 import executeSyncSubcommand from "./sync";
+import type { Command } from "#/types";
+import { prisma } from "#main";
 
-const command: Command = {
+export default {
   data: new SlashCommandBuilder()
     .setName("身份組群組")
     .setDescription("製作和管理身份組群組")
@@ -76,7 +76,7 @@ const command: Command = {
         break;
     }
   },
-};
+} satisfies Command;
 
 export async function syncMetarole(
   interaction: Interaction,
@@ -109,5 +109,3 @@ export async function syncMetarole(
     data: { syncedAt: new Date() },
   });
 }
-
-export default command;

@@ -1,7 +1,7 @@
 import { MessageMentions } from "discord.js";
-import { prisma } from "../../main";
-import type { Subcommand } from "../types";
 import { syncMetarole } from ".";
+import type { Subcommand } from "#/types";
+import { prisma } from "#main";
 
 const executeCreateSubcommand: Subcommand = async (interaction) => {
   if (!interaction.inGuild()) {

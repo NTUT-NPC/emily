@@ -2,11 +2,11 @@ import type {
   ChatInputCommandInteraction,
   CommandInteraction,
   ContextMenuCommandBuilder,
-  SlashCommandBuilder,
+  SharedSlashCommand,
 } from "discord.js";
 
 export interface Command {
-  data: Partial<SlashCommandBuilder> | ContextMenuCommandBuilder;
+  data: SharedSlashCommand | ContextMenuCommandBuilder;
   execute: (interaction: CommandInteraction) => Promise<void>;
 }
 

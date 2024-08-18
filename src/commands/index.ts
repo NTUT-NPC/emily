@@ -1,11 +1,11 @@
 import type { ApplicationCommand, MessageComponentInteraction, ModalActionRowComponentBuilder, ModalBuilder, ModalSubmitInteraction } from "discord.js";
 import { ActionRowBuilder, DiscordjsErrorCodes, REST, Routes, TextInputBuilder, TextInputStyle } from "discord.js";
-import { messages } from "../config";
-import { logger } from "../main";
-import type { Command } from "./types";
 import convertChannelNameCommand from "./convertChannelName";
 import membershipCommand from "./membership";
 import metaroleCommand from "./metarole";
+import { logger } from "#main";
+import { messages } from "#config";
+import type { Command } from "#types";
 
 const commands = new Map<string, Command>();
 

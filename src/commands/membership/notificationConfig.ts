@@ -1,6 +1,6 @@
 import { ChannelType, PermissionsBitField } from "discord.js";
-import type { Subcommand } from "../types";
-import { messages } from "../../config";
+import type { Subcommand } from "#/types";
+import { messages } from "#/config";
 
 const executeNotificationConfigSubcommand: Subcommand = async (interaction) => {
   if (!interaction.inGuild()) {

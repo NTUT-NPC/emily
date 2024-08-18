@@ -4,6 +4,13 @@
     "lib": ["ES2023"],
     "module": "Preserve",
     "moduleResolution": "Bundler",
+
+    // Required until this issue is resolved
+    // https://github.com/microsoft/TypeScript/issues/52460
+    "paths": {
+      "#*": ["./src/*"]
+    },
+
     "noEmit": true,
     "skipLibCheck": true
   },

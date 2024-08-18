@@ -1,8 +1,8 @@
 import { PrismaClient } from "@prisma/client";
 import { Client, Events, GatewayIntentBits } from "discord.js";
 import pino from "pino";
-import { commands, register } from "./commands";
-import config from "./config";
+import { commands, register } from "#commands";
+import config from "#config";
 
 export const prisma = new PrismaClient();
 export const logger = pino({

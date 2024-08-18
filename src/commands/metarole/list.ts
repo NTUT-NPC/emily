@@ -1,5 +1,5 @@
-import { prisma } from "../../main";
-import type { Subcommand } from "../types";
+import type { Subcommand } from "#/types";
+import { prisma } from "#main";
 
 const executeListSubcommand: Subcommand = async (interaction) => {
   if (!interaction.inGuild()) {

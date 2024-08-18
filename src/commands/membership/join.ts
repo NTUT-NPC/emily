@@ -2,10 +2,10 @@ import type { Member } from "@prisma/client";
 import { RegistrationStep } from "@prisma/client";
 import type { InteractionReplyOptions, MessageActionRowComponentBuilder, MessageEditOptions, TextChannel } from "discord.js";
 import { ActionRowBuilder, ButtonBuilder, ButtonStyle, ModalBuilder } from "discord.js";
-import config, { messages } from "../../config";
-import { prisma } from "../../main";
-import type { Subcommand } from "../types";
 import { makeTextInputActionRow, showModalAndGetSubmission } from "..";
+import config, { messages } from "#/config";
+import { prisma } from "#/main";
+import type { Subcommand } from "#/types";
 
 const executeJoinSubcommand: Subcommand = async (interaction) => {
   // 這個指令限私訊使用

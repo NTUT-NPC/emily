@@ -1,6 +1,6 @@
-import { prisma } from "../../main";
-import type { Subcommand } from "../types";
 import { syncMetarole } from ".";
+import type { Subcommand } from "#/types";
+import { prisma } from "#main";
 
 const executeSyncSubcommand: Subcommand = async (interaction) => {
   if (!interaction.inGuild()) {
