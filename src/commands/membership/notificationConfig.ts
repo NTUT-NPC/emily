@@ -1,6 +1,6 @@
 import { ChannelType, PermissionsBitField } from "discord.js";
-import type { Subcommand } from "../types.js";
-import { messages } from "../../config.js";
+import type { Subcommand } from "../types";
+import { messages } from "../../config";
 
 const executeNotificationConfigSubcommand: Subcommand = async (interaction) => {
   if (!interaction.inGuild()) {
@@ -9,7 +9,8 @@ const executeNotificationConfigSubcommand: Subcommand = async (interaction) => {
   }
 
   if (interaction.memberPermissions.has([
-    PermissionsBitField.Flags.ManageRoles, PermissionsBitField.Flags.ManageChannels,
+    PermissionsBitField.Flags.ManageRoles,
+    PermissionsBitField.Flags.ManageChannels,
   ])) {
     await interaction.reply("必須有管理身份組和管理頻道的權限");
     return;

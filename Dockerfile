@@ -1,25 +1,25 @@
-FROM node:alpine as build
+FROM node:20-alpine AS build
 
-COPY prisma prisma
+RUN corepack enable
+
 COPY package.json .
-RUN npm install --omit=dev
-RUN npx prisma generate
+COPY pnpm-lock.yaml .
+COPY prisma prisma
+RUN pnpm install
 
-FROM oven/bun as production
+COPY src src
+RUN pnpm run build
+
+FROM node:20-alpine AS production
 WORKDIR /usr/src/app
 
 # Tell the app we are in docker
 ENV DOCKER true
+ENV NODE_ENV production
 
-# Workaround for https://github.com/oven-sh/bun/issues/4847 and https://github.com/oven-sh/bun/issues/5320
-COPY --from=build node_modules/.prisma node_modules/.prisma
-
-COPY prisma prisma
-COPY src src
 COPY .env .
-COPY bun.lockb .
-COPY package.json .
-RUN bun install --production
+COPY --from=build node_modules node_modules
+COPY --from=build index.mjs index.mjs
 
-EXPOSE 80
-CMD [ "bun", "run", "start" ]
+CMD [ "node", "--env-file=.env", "index.mjs" ]
+# CMD [ "sleep", "1000" ]

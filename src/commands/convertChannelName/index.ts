@@ -1,6 +1,6 @@
 import { SlashCommandBuilder } from "discord.js";
-import type { Command } from "../types.js";
-import { messages } from "../../config.js";
+import type { Command } from "../types";
+import { messages } from "../../config";
 
 const command: Command = {
   data: new SlashCommandBuilder()
@@ -32,7 +32,7 @@ export default command;
 function convertChannelName(text: string): string {
   const isLowerCase = (s: string) => /^[a-z]*$/.test(s);
   const isUpperCase = (s: string) => /^[A-Z]*$/.test(s);
-  const isDigit = (s: string) => /^[0-9]*$/.test(s);
+  const isDigit = (s: string) => /^\d*$/.test(s);
   const isSpace = (s: string) => /^\s*$/.test(s);
   const isVerticalBar = (s: string) => /^\|*$/.test(s);
 

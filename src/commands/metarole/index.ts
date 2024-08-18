@@ -3,12 +3,12 @@ import {
   PermissionFlagsBits,
   SlashCommandBuilder,
 } from "discord.js";
-import { prisma } from "../../main.js";
-import type { Command } from "../types.js";
-import executeCreateSubcommand from "./create.js";
-import executeListSubcommand from "./list.js";
-import executeRemoveSubcommand from "./remove.js";
-import executeSyncSubcommand from "./sync.js";
+import { prisma } from "../../main";
+import type { Command } from "../types";
+import executeCreateSubcommand from "./create";
+import executeListSubcommand from "./list";
+import executeRemoveSubcommand from "./remove";
+import executeSyncSubcommand from "./sync";
 
 const command: Command = {
   data: new SlashCommandBuilder()

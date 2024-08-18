@@ -1,8 +1,8 @@
 import { RegistrationStep } from "@prisma/client";
-import { prisma } from "../../main.js";
-import type { Subcommand } from "../types.js";
-import { messages } from "../../config.js";
-import { hasManageRolesPermission } from "./index.js";
+import { prisma } from "../../main";
+import type { Subcommand } from "../types";
+import { messages } from "../../config";
+import { hasManageRolesPermission } from ".";
 
 const executeRequestsList: Subcommand = async (interaction) => {
   if (!interaction.inGuild()) {

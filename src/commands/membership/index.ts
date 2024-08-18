@@ -1,11 +1,11 @@
 import type { ChatInputCommandInteraction } from "discord.js";
 import { PermissionsBitField, SlashCommandBuilder } from "discord.js";
-import type { Command } from "../types.js";
-import executeJoinSubcommand from "./join.js";
-import executeNotificationConfigSubcommand from "./notificationConfig.js";
-import executeRequestsList from "./requestsList.js";
-import executeRequestsAccept from "./requestsAccept.js";
-import executeRequestsReject from "./requestsReject.js";
+import type { Command } from "../types";
+import executeJoinSubcommand from "./join";
+import executeNotificationConfigSubcommand from "./notificationConfig";
+import executeRequestsList from "./requestsList";
+import executeRequestsAccept from "./requestsAccept";
+import executeRequestsReject from "./requestsReject";
 
 const command: Command = {
   data: new SlashCommandBuilder()

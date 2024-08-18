@@ -2,10 +2,10 @@ import type { Member } from "@prisma/client";
 import { RegistrationStep } from "@prisma/client";
 import type { InteractionReplyOptions, MessageActionRowComponentBuilder, MessageEditOptions, TextChannel } from "discord.js";
 import { ActionRowBuilder, ButtonBuilder, ButtonStyle, ModalBuilder } from "discord.js";
-import config, { messages } from "../../config.js";
-import { prisma } from "../../main.js";
-import type { Subcommand } from "../types.js";
-import { makeTextInputActionRow, showModalAndGetSubmission } from "../index.js";
+import config, { messages } from "../../config";
+import { prisma } from "../../main";
+import type { Subcommand } from "../types";
+import { makeTextInputActionRow, showModalAndGetSubmission } from "..";
 
 const executeJoinSubcommand: Subcommand = async (interaction) => {
   // 這個指令限私訊使用
@@ -226,7 +226,7 @@ async function sendNotification(member: Member, channel: TextChannel) {
         });
         await requester.send(messages.join.reject(reason));
         await submission.reply(
-            `<@${submission.user.id}> 已拒絕 <@${member.discordId}> 的加入請求，理由：${reason}。`,
+          `<@${submission.user.id}> 已拒絕 <@${member.discordId}> 的加入請求，理由：${reason}。`,
         );
 
         break;
