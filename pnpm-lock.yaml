@@ -43,7 +43,7 @@ importers:
         specifier: ^4.17.0
         version: 4.17.0
       typescript:
-        specifier: ^5.5.4
+        specifier: 5.5.4
         version: 5.5.4
 
 packages:
