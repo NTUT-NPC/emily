@@ -1,9 +1,6 @@
 # Emily
 
-北科程式設計研究社 (NPC) 的 Discord 社群管理工具，[舊 Emily][Java Emily] 的 Discord.js 重製版。專案結構是基於 [書呆大學長][ai-chatbot]。
-
-[Java Emily]: https://github.com/ntut-xuan/NPC-Emily
-[ai-chatbot]: https://github.com/chenghsuanho/ai-chatbot
+北科程式設計研究社 (NPC) 的 Discord 社群管理工具，[舊 Emily](https://github.com/ntut-xuan/NPC-Emily) 的 Discord.js 重製版。專案結構是基於 [書呆大學長](https://github.com/chenghsuanho/ai-chatbot)。
 
 ## 功能
 
@@ -17,23 +14,15 @@
 
 ## 開發
 
-請依照[慣例式提交][Conventional Commits]規範用中文或英文寫提交說明。
-
-[Conventional Commits]: https://www.conventionalcommits.org/zh-hant/v1.0.0/
+請依照[慣例式提交](https://www.conventionalcommits.org/zh-hant/v1.0.0/)規範用中文或英文寫提交說明。
 
 ### 技術棧
 
-- [Bun][bun]: JavaScript 執行環境和套件管理工具
-- [Discord.js][discord.js]：Discord API 的 Node.js 實作
-- [TypeScript][typescript]：JavaScript 的超集，提供型別檢查和其他語言功能
-- [Prisma][prisma]：資料庫存取工具
-- [Pino][pino]：日誌工具
-
-[discord.js]: https://discord.js.org/
-[typescript]: https://www.typescriptlang.org/
-[prisma]: https://www.prisma.io/
-[bun]: https://bun.sh/
-[pino]: https://getpino.io/
+- [Bun](https://bun.sh/): JavaScript 執行環境和套件管理工具
+- [Discord.js](https://discord.js.org/)：Discord API 的 Node.js 實作
+- [TypeScript](https://www.typescriptlang.org/)：JavaScript 的超集，提供型別檢查和其他語言功能
+- [Prisma](https://www.prisma.io/)：資料庫存取工具
+- [Pino](https://getpino.io/)：日誌工具
 
 ### 斜線指令
 
@@ -52,15 +41,12 @@ cp examples/.env .
 docker compose up -d
 ```
 
-由於一個 [Bun 的問題][oven-sh/bun#5320]，資料庫遷移可能不會執行，導致 `prisma` 找不到 `emily` 資料庫。此時你需要手動執行 `bun x prisma migrate deploy` 後再試一次。
+由於一個 [Bun 的問題](https://github.com/oven-sh/bun/issues/5320)，資料庫遷移可能不會執行，導致 `prisma` 找不到 `emily` 資料庫。此時你需要手動執行 `bun x prisma migrate deploy` 後再試一次。
 
-到 [Discord Developers][discord-developers] 網站建立一個機器人。啟用 `Privileged Gateway Intents` 中的 `Presence Intent` 和 `Server Members Intent`。
+到 [Discord Developers](https://discord.com/developers/applications) 網站建立一個機器人。啟用 `Privileged Gateway Intents` 中的 `Presence Intent` 和 `Server Members Intent`。
 
 最後，用邀請連結來將機器人加入您的Discord伺服器。將「你的\_Client_ID」替換為您機器人的 Client ID：
 
 ```url
 https://discord.com/api/oauth2/authorize?client_id=你的_Client_ID&permissions=268437504&scope=bot%20applications.commands
 ```
-
-[discord-developers]: https://discord.com/developers/applications
-[oven-sh/bun#5320]: https://github.com/oven-sh/bun/issues/5320
