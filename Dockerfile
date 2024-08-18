@@ -17,9 +17,14 @@ WORKDIR /usr/src/app
 ENV DOCKER true
 ENV NODE_ENV production
 
+RUN corepack enable
+
+COPY package.json .
+COPY pnpm-lock.yaml .
+COPY prisma prisma
+RUN pnpm install
+
 COPY .env .
-COPY --from=build node_modules node_modules
 COPY --from=build index.mjs index.mjs
 
 CMD [ "node", "--env-file=.env", "index.mjs" ]
-# CMD [ "sleep", "1000" ]
