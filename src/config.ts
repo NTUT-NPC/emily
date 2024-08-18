@@ -1,45 +1,14 @@
-/* eslint-disable no-irregular-whitespace */
 import type { Member } from "@prisma/client";
 
-interface Config {
-  registerCommands: boolean;
-  memberJoinNotificationTimeoutSeconds: number;
-  membershipNotificationChannelId: string;
-  membershipRoleId: string;
-}
-
-const config: Config = {
+const config = {
   registerCommands: true,
   memberJoinNotificationTimeoutSeconds: 600,
   membershipNotificationChannelId: "1141944728598880346",
   membershipRoleId: "890876143362789378",
 };
 
-export default config;
-
-interface Messages {
-  error: {
-    generic: string;
-    notInDatabase: string;
-    notAwaitingConfirmation: string;
-    useInGuild: string;
-    modalTimeout: string;
-  };
-  join: {
-    useDirectMessage: string;
-    introduction: string;
-    basicInformation: string;
-    committeeConfirmation: string;
-    accept: string;
-    reject: (reason: string) => string;
-    alreadyJoined: string;
-    notificationSent: string;
-    notificationTimeout: (notificationSentDate: Date) => string;
-    notification: (member: Member) => string;
-  };
-}
-
-export const messages: Messages = {
+/* eslint-disable no-irregular-whitespace */
+const messages = {
   error: {
     generic: "糟糕，看來出了些小問題。請把這個問題回報給<@132112879439708160>，謝謝！",
     notInDatabase: "資料庫中沒有這個使用者。",
@@ -72,15 +41,15 @@ export const messages: Messages = {
     
 您的基本資料已經送出，我也已經通知幹部了！請讓幹部向您收取 500 元的社費，並等待幹部確認您的資料。`,
     accept: "恭喜您！您已經成功加入社團！我會分配幹部身份組給您，如果沒有得到身份組，請聯絡幹部。",
-    reject(reason) {
+    reject(reason: string) {
       return `很抱歉，您的加入請求被拒絕了。理由：${reason}\n（您可以輸入「/社員 加入」再試一次）`;
     },
     alreadyJoined: "您已經成功加入社團！",
     notificationSent: "已通知幹部，請等待幹部確認。",
-    notificationTimeout(notificationSentDate) {
+    notificationTimeout(notificationSentDate: Date) {
       return `很抱歉，您在<t:${Math.floor(+notificationSentDate / 1000) + config.memberJoinNotificationTimeoutSeconds}:R>才能再通知一次幹部。`;
     },
-    notification(member) {
+    notification(member: Member) {
       return `有新的社員加入請求！<@${member.discordId}> 想要加入社團。
 - 電子郵件： ${member.email}
 - 姓名　　： ${member.name}
@@ -89,3 +58,5 @@ export const messages: Messages = {
     },
   },
 };
+
+export { config as default, messages };
