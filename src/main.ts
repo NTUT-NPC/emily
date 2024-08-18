@@ -1,4 +1,3 @@
-import process from "node:process";
 import { PrismaClient } from "@prisma/client";
 import { Client, Events, GatewayIntentBits } from "discord.js";
 import pino from "pino";

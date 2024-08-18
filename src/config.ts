@@ -1,5 +1,4 @@
 /* eslint-disable no-irregular-whitespace */
-/* eslint-disable vue/no-irregular-whitespace */
 import type { Member } from "@prisma/client";
 
 interface Config {

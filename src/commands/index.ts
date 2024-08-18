@@ -1,6 +1,3 @@
-import { readdir } from "node:fs/promises";
-import { join } from "node:path";
-import process from "node:process";
 import type { ApplicationCommand, MessageComponentInteraction, ModalActionRowComponentBuilder, ModalBuilder, ModalSubmitInteraction } from "discord.js";
 import { ActionRowBuilder, DiscordjsErrorCodes, REST, Routes, TextInputBuilder, TextInputStyle } from "discord.js";
 import { messages } from "../config";
