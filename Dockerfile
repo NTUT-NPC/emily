@@ -18,10 +18,7 @@ RUN pnpm run build
 
 FROM base AS production
 
-# Tell the app we are in docker
-ENV DOCKER true
 ENV NODE_ENV production
-
 RUN pnpm install
 
 COPY --from=build index.mjs index.mjs
