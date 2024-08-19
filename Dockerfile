@@ -25,7 +25,6 @@ COPY pnpm-lock.yaml .
 COPY prisma prisma
 RUN pnpm install
 
-COPY .env .
 COPY --from=build index.mjs index.mjs
 
-CMD [ "node", "--env-file=.env", "index.mjs" ]
+CMD [ "node", "index.mjs" ]
