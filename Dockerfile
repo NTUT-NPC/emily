@@ -1,28 +1,27 @@
-FROM node:20-alpine AS build
-
-RUN corepack enable
+FROM node:20-alpine AS base
 
 COPY package.json .
 COPY pnpm-lock.yaml .
-COPY tsconfig.json .
 COPY prisma prisma
+
+RUN corepack enable
+RUN corepack install
+
+FROM base AS build
+
 RUN pnpm install
 
 COPY src src
+COPY build.ts .
+COPY tsconfig.json .
 RUN pnpm run build
 
-FROM node:20-alpine AS production
-WORKDIR /usr/src/app
+FROM base AS production
 
 # Tell the app we are in docker
 ENV DOCKER true
 ENV NODE_ENV production
 
-RUN corepack enable
-
-COPY package.json .
-COPY pnpm-lock.yaml .
-COPY prisma prisma
 RUN pnpm install
 
 COPY --from=build index.mjs index.mjs
