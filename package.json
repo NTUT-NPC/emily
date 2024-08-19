@@ -9,7 +9,7 @@
   },
   "scripts": {
     "dev": "tsx --watch src/main.ts",
-    "build": "esbuild src/main.ts --bundle --format=esm --packages=external --platform=node --charset=utf8 --outfile=index.mjs",
+    "build": "tsx build.ts",
     "postinstall": "prisma generate --no-hints",
     "type-check": "tsc",
     "lint": "eslint .",
