@@ -5,9 +5,7 @@ build({
   entryPoints: ["src/main.ts"],
   bundle: true,
   platform: "node",
-  format: "esm",
-  packages: "external",
   charset: "utf8",
   minify: true,
-  outfile: "index.mjs",
+  outfile: "index.cjs",
 });

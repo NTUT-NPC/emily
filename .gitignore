@@ -1,4 +1,4 @@
 /node_modules/
 /.env
 /compose.yaml
-/index.mjs
+/index.cjs

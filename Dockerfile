@@ -18,9 +18,7 @@ RUN pnpm run build
 
 FROM base AS production
 
-ENV NODE_ENV production
-RUN pnpm install
+RUN pnpm dlx prisma generate --no-hints
 
-COPY --from=build index.mjs index.mjs
-
-CMD [ "node", "index.mjs" ]
+COPY --from=build index.cjs index.cjs
+CMD [ "node", "index.cjs" ]
