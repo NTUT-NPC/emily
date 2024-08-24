@@ -20,7 +20,6 @@
 
 - [Discord.js](https://discord.js.org/)：Discord API 的 Node.js 實作
 - [ESBuild](https://esbuild.github.io/)：快速的 JavaScript 轉譯器
-- [Pino](https://getpino.io/)：日誌工具
 - [pnpm](https://pnpm.io/)：Node.js 的套件管理工具
 - [Prisma](https://www.prisma.io/)：資料庫存取工具
 - [tsx](https://tsx.is/)：執行 TypeScript 檔案

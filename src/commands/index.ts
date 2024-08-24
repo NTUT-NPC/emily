@@ -3,7 +3,6 @@ import { ActionRowBuilder, DiscordjsErrorCodes, REST, Routes, TextInputBuilder, 
 import convertChannelNameCommand from "./convertChannelName";
 import membershipCommand from "./membership";
 import metaroleCommand from "./metarole";
-import { logger } from "#main";
 import { messages } from "#config";
 import type { Command } from "#types";
 
@@ -63,7 +62,7 @@ export async function showModalAndGetSubmission(interaction: MessageComponentInt
       content = messages.error.modalTimeout;
     }
     await interaction.editReply(content);
-    logger.error(error);
+    console.error(error);
     throw error;
   }
 }

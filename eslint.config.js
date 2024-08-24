@@ -13,6 +13,7 @@ export default antfu(
     rules: {
       "antfu/if-newline": "off",
       "curly": ["error", "multi-line", "consistent"],
+      "no-console": "off",
       "node/prefer-global/buffer": ["error", "always"],
       "node/prefer-global/process": ["error", "always"],
       "style/arrow-parens": ["error", "always"],
