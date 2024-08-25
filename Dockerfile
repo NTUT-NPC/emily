@@ -1,4 +1,4 @@
-FROM node:20-alpine AS base
+FROM node:20-alpine AS build
 WORKDIR /app
 
 ENV PNPM_HOME="/pnpm"
@@ -7,13 +7,6 @@ RUN corepack enable
 
 COPY package.json .
 COPY pnpm-lock.yaml .
-
-FROM base AS prod-deps
-
-RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm install --prod --frozen-lockfile
-
-FROM base AS build
-
 RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm install --frozen-lockfile
 
 COPY src src
@@ -21,7 +14,7 @@ COPY build.ts .
 COPY tsconfig.json .
 RUN pnpm run build
 
-FROM base AS production
+FROM node:20-alpine AS production
 
-COPY --from=build /app/index.cjs .
-CMD [ "node", "index.cjs" ]
+COPY --from=build /app/index.js .
+CMD [ "node", "index.js" ]

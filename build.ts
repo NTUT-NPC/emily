@@ -8,5 +8,5 @@ build({
   charset: "utf8",
   minifyWhitespace: true,
   minifySyntax: true,
-  outfile: "index.cjs",
+  outfile: "index.js",
 });
