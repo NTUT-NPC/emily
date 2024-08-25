@@ -2,3 +2,4 @@
 /.env
 /compose.yaml
 /index.cjs
+/.idea
