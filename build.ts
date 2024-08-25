@@ -6,6 +6,7 @@ build({
   bundle: true,
   platform: "node",
   charset: "utf8",
-  minify: true,
+  minifyWhitespace: true,
+  minifySyntax: true,
   outfile: "index.cjs",
 });
