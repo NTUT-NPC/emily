@@ -4,6 +4,7 @@ import type {
   ContextMenuCommandBuilder,
   SharedSlashCommand,
 } from "discord.js";
+import type { member, metarole } from "#drizzle/schema";
 
 export interface Command {
   data: SharedSlashCommand | ContextMenuCommandBuilder;
@@ -13,3 +14,6 @@ export interface Command {
 export type Subcommand = (
   interaction: ChatInputCommandInteraction,
 ) => Promise<void>;
+
+export type Member = typeof member.$inferSelect;
+export type Metarole = typeof metarole.$inferSelect;
