@@ -1,8 +1,9 @@
-import { RegistrationStep } from "@prisma/client";
+import { eq } from "drizzle-orm";
 import { hasManageRolesPermission } from ".";
-import { prisma } from "#/main";
 import type { Subcommand } from "#/types";
 import { messages } from "#/config";
+import { db } from "#drizzle/db";
+import { member as table } from "#drizzle/schema";
 
 const executeRequestsReject: Subcommand = async (interaction) => {
   if (!interaction.inGuild()) {
@@ -19,22 +20,25 @@ const executeRequestsReject: Subcommand = async (interaction) => {
   const reason = interaction.options.getString("原因", true);
   const discordId = BigInt(requester.id);
 
-  const member = await prisma.member.findUnique({ where: { discordId } });
+  const [member] = await db.select()
+    .from(table)
+    .where(eq(table.discordId, discordId));
+
   if (!member) {
     await interaction.reply({ content: messages.error.notInDatabase, ephemeral: true });
     return;
   }
-  if (member?.registrationStep !== RegistrationStep.COMMITTEE_CONFIRMATION) {
+  if (member?.registrationStep !== "COMMITTEE_CONFIRMATION") {
     await interaction.reply({ content: messages.error.notAwaitingConfirmation, ephemeral: true });
     return;
   }
 
   await interaction.deferReply();
 
-  await prisma.member.update({
-    data: { registrationStep: RegistrationStep.BASIC_INFORMATION },
-    where: { discordId },
-  });
+  await db.update(table)
+    .set({ registrationStep: "BASIC_INFORMATION" })
+    .where(eq(table.discordId, discordId));
+
   await requester.send(messages.join.reject(reason));
   await interaction.editReply(`已拒絕 <@${requester.id}> 的加入請求，理由：${reason}。`);
 };

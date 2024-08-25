@@ -1,5 +1,7 @@
+import { eq } from "drizzle-orm";
 import type { Subcommand } from "#/types";
-import { prisma } from "#main";
+import { db } from "#drizzle/db";
+import { metarole as table } from "#drizzle/schema";
 
 const executeRemoveSubcommand: Subcommand = async (interaction) => {
   if (!interaction.inGuild()) {
@@ -14,17 +16,20 @@ const executeRemoveSubcommand: Subcommand = async (interaction) => {
 
   await interaction.deferReply();
 
-  const metaroleEntry = await prisma.metarole.findUnique({
-    where: { role: BigInt(metarole.id) },
-  });
+  const metaroleId = BigInt(metarole.id);
+
+  const [metaroleEntry] = await db.select({})
+    .from(table)
+    .where(eq(table.role, metaroleId));
+
   if (!metaroleEntry) {
     await interaction.editReply("這個身份組群組不存在");
     return;
   }
 
-  await prisma.metarole.delete({
-    where: { role: BigInt(metarole.id) },
-  });
+  await db.delete(table)
+    .where(eq(table.role, metaroleId));
+
   await interaction.editReply({
     content: `已移除 <@&${metarole.id}> 身份組群組。`,
     allowedMentions: { parse: [] }, // 不要提及任何人

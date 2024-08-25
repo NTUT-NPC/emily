@@ -1,8 +1,9 @@
-import { RegistrationStep } from "@prisma/client";
+import { eq } from "drizzle-orm";
 import { hasManageRolesPermission } from ".";
 import config, { messages } from "#/config";
-import { prisma } from "#/main";
 import type { Subcommand } from "#/types";
+import { db } from "#drizzle/db";
+import { member as table } from "#drizzle/schema";
 
 const executeRequestsAccept: Subcommand = async (interaction) => {
   if (!interaction.inGuild()) {
@@ -21,25 +22,29 @@ const executeRequestsAccept: Subcommand = async (interaction) => {
   const requester = interaction.guild!.members.cache.get(requestUser.id)!;
   const discordId = BigInt(requester.id);
 
-  const member = await prisma.member.findUnique({ where: { discordId } });
+  const [member] = await db.select()
+    .from(table)
+    .where(eq(table.discordId, discordId));
+
   if (!member) {
     await interaction.reply({ content: messages.error.notInDatabase, ephemeral: true });
     return;
   }
-  if (member.registrationStep !== RegistrationStep.COMMITTEE_CONFIRMATION) {
+
+  if (member.registrationStep !== "COMMITTEE_CONFIRMATION") {
     await interaction.reply("這個使用者並沒有等待幹部確認的加入請求");
     return;
   }
 
   await interaction.deferReply();
 
-  await prisma.member.update({
-    data: {
-      registrationStep: RegistrationStep.COMPLETE,
+  await db.update(table)
+    .set({
+      registrationStep: "COMPLETE",
       joinedAt: new Date(),
-    },
-    where: { discordId },
-  });
+    })
+    .where(eq(table.discordId, discordId));
+
   const membershipRole = interaction.guild!.roles.cache.get(config.membershipRoleId)!;
   await requester.roles.add(membershipRole);
   await requester.send(messages.join.accept);

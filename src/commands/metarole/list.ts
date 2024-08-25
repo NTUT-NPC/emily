@@ -1,5 +1,7 @@
+import { eq } from "drizzle-orm";
 import type { Subcommand } from "#/types";
-import { prisma } from "#main";
+import { db } from "#drizzle/db";
+import { metarole as table } from "#drizzle/schema";
 
 const executeListSubcommand: Subcommand = async (interaction) => {
   if (!interaction.inGuild()) {
@@ -8,9 +10,13 @@ const executeListSubcommand: Subcommand = async (interaction) => {
 
   await interaction.deferReply();
 
-  const metaroles = await prisma.metarole.findMany({
-    where: { guild: BigInt(interaction.guildId) },
-  });
+  const metaroles = await db.select({
+    memberRoles: table.memberRoles,
+    role: table.role,
+    syncedAt: table.syncedAt,
+  })
+    .from(table)
+    .where(eq(table.guild, BigInt(interaction.guildId)));
 
   if (metaroles.length === 0) {
     await interaction.editReply("沒有身份組群組。");
