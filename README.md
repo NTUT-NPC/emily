@@ -19,11 +19,11 @@
 ### 技術棧
 
 - [Discord.js](https://discord.js.org/)：Discord API 的 Node.js 實作
-- [ESBuild](https://esbuild.github.io/)：快速的 JavaScript 轉譯器
+- [ESBuild](https://esbuild.github.io/)：超高速的 JavaScript 和 TypeScript 打包工具和轉譯器。
 - [pnpm](https://pnpm.io/)：Node.js 的套件管理工具
-- [Prisma](https://www.prisma.io/)：資料庫存取工具
-- [tsx](https://tsx.is/)：執行 TypeScript 檔案
+- [Drizzle ORM](https://orm.drizzle.team/)：輕量級且強型別的 ORM（物件關聯映射工具）
 - [TypeScript](https://www.typescriptlang.org/)：JavaScript 的超集，提供型別檢查和其他語言功能
+- [tsx](https://tsx.is/)：執行 TypeScript 檔案
 
 ### 斜線指令
 
