@@ -1,7 +1,7 @@
 // @ts-check
-import { antfu } from "@antfu/eslint-config";
+const { antfu } = require("@antfu/eslint-config");
 
-export default antfu(
+module.exports = antfu(
   {
     stylistic: {
       semi: true,
