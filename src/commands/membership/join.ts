@@ -1,11 +1,11 @@
-import type { Member } from "@prisma/client";
-import { RegistrationStep } from "@prisma/client";
 import type { InteractionReplyOptions, MessageActionRowComponentBuilder, MessageEditOptions, TextChannel } from "discord.js";
 import { ActionRowBuilder, ButtonBuilder, ButtonStyle, ModalBuilder } from "discord.js";
+import { eq } from "drizzle-orm";
 import { makeTextInputActionRow, showModalAndGetSubmission } from "..";
 import config, { messages } from "#/config";
-import { prisma } from "#/main";
-import type { Subcommand } from "#/types";
+import type { Member, Subcommand } from "#/types";
+import { db } from "#drizzle/db";
+import { member as table } from "#drizzle/schema";
 
 const executeJoinSubcommand: Subcommand = async (interaction) => {
   // 這個指令限私訊使用
@@ -20,21 +20,19 @@ const executeJoinSubcommand: Subcommand = async (interaction) => {
   const discordId = BigInt(interaction.user.id);
   const notificationChannel = interaction.client.channels.cache.get(config.membershipNotificationChannelId) as TextChannel;
 
-  // 查詢加入進度，如果沒有就建立一個
-  let member = await prisma.member.upsert({
-    create: { discordId },
-    update: {},
-    where: { discordId },
-  });
+  let [member] = await db.insert(table)
+    .values({ discordId })
+    .onConflictDoNothing()
+    .returning();
 
   const replies = new Map<
-    RegistrationStep,
+    Member["registrationStep"],
     InteractionReplyOptions & MessageEditOptions | string
   >();
-  replies.set(RegistrationStep.INTRODUCTION, getIntroductionReply());
-  replies.set(RegistrationStep.BASIC_INFORMATION, getBasicInformationReply());
-  replies.set(RegistrationStep.COMMITTEE_CONFIRMATION, getCommitteeConfirmation());
-  replies.set(RegistrationStep.COMPLETE, messages.join.alreadyJoined);
+  replies.set("INTRODUCTION", getIntroductionReply());
+  replies.set("BASIC_INFORMATION", getBasicInformationReply());
+  replies.set("COMMITTEE_CONFIRMATION", getCommitteeConfirmation());
+  replies.set("COMPLETE", messages.join.alreadyJoined);
 
   const reply = replies.get(member.registrationStep) ?? messages.error.generic;
   const response = await interaction.reply(reply);
@@ -43,17 +41,18 @@ const executeJoinSubcommand: Subcommand = async (interaction) => {
   buttonCollector.on("collect", async (interaction) => {
     switch (interaction.customId) {
       case "introductionNext":
-        member = await prisma.member.update({
-          data: { registrationStep: RegistrationStep.BASIC_INFORMATION },
-          where: { discordId },
-        });
-        await interaction.reply(replies.get(RegistrationStep.BASIC_INFORMATION)!);
+        [member] = await db.update(table)
+          .set({ registrationStep: "BASIC_INFORMATION" })
+          .where(eq(table.discordId, discordId))
+          .returning();
+
+        await interaction.reply(replies.get("BASIC_INFORMATION")!);
         break;
 
       case "basicInformationShowModal": {
         // Prevent the modal from opening if the user is already a member.
         // This happens when the committee confirms the member while user is filling the form.
-        if (member.registrationStep === RegistrationStep.COMPLETE) {
+        if (member.registrationStep === "COMPLETE") {
           await interaction.reply(messages.join.alreadyJoined);
           return;
         }
@@ -62,33 +61,28 @@ const executeJoinSubcommand: Subcommand = async (interaction) => {
         const email = submission.fields.getTextInputValue("emailInput");
         const name = submission.fields.getTextInputValue("nameInput");
         const studentId = submission.fields.getTextInputValue("studentIdInput");
-        member = await prisma.member.update({
-          data: { email, name, studentId, registrationStep: RegistrationStep.COMMITTEE_CONFIRMATION },
-          where: { discordId },
-        });
+        [member] = await db.update(table)
+          .set({ email, name, studentId, registrationStep: "COMMITTEE_CONFIRMATION" })
+          .where(eq(table.discordId, discordId))
+          .returning();
 
         if (canSendNotification(member)) {
           await sendNotification(member, notificationChannel);
         }
-        await submission.reply(replies.get(RegistrationStep.COMMITTEE_CONFIRMATION)!);
+        await submission.reply(replies.get("COMMITTEE_CONFIRMATION")!);
         break;
       }
 
       case "committeeConfirmationEdit":
-        member = await prisma.member.update({
-          data: { registrationStep: RegistrationStep.BASIC_INFORMATION },
-          where: { discordId },
-        });
-        await interaction.reply(replies.get(RegistrationStep.BASIC_INFORMATION)!);
+        [member] = await db.update(table)
+          .set({ registrationStep: "BASIC_INFORMATION" })
+          .where(eq(table.discordId, discordId))
+          .returning();
+
+        await interaction.reply(replies.get("BASIC_INFORMATION")!);
         break;
 
       case "committeeConfirmationNotify": {
-        const member = await prisma.member.findUnique({ where: { discordId } });
-        if (!member) {
-          await interaction.reply(messages.error.generic);
-          return;
-        }
-
         if (canSendNotification(member)) {
           await sendNotification(member, notificationChannel);
           await interaction.reply(messages.join.notificationSent);
@@ -200,10 +194,14 @@ async function sendNotification(member: Member, channel: TextChannel) {
 
     switch (interaction.customId) {
       case "joinNotificationAccept": {
-        member = await prisma.member.update({
-          data: { registrationStep: "COMPLETE", joinedAt: new Date() },
-          where: { discordId: member.discordId },
-        });
+        [member] = await db.update(table)
+          .set({
+            registrationStep: "COMPLETE",
+            joinedAt: new Date(),
+          })
+          .where(eq(table.discordId, member.discordId))
+          .returning();
+
         const membershipRole = interaction.guild!.roles.cache.get(config.membershipRoleId)!;
         await requester.roles.add(membershipRole);
         await requester.send(messages.join.accept);
@@ -220,10 +218,12 @@ async function sendNotification(member: Member, channel: TextChannel) {
         // Notify the requester and change the registration step.
         const submission = await showModalAndGetSubmission(interaction, rejectReasonModal);
         const reason = submission.fields.getTextInputValue("rejectReasonInput");
-        member = await prisma.member.update({
-          data: { registrationStep: RegistrationStep.BASIC_INFORMATION },
-          where: { discordId: member.discordId },
-        });
+
+        [member] = await db.update(table)
+          .set({ registrationStep: "BASIC_INFORMATION" })
+          .where(eq(table.discordId, member.discordId))
+          .returning();
+
         await requester.send(messages.join.reject(reason));
         await submission.reply(
           `<@${submission.user.id}> 已拒絕 <@${member.discordId}> 的加入請求，理由：${reason}。`,
@@ -235,8 +235,7 @@ async function sendNotification(member: Member, channel: TextChannel) {
   });
 
   await channel.send({ content: messages.join.notification(member), components: [actionRow] });
-  await prisma.member.update({
-    data: { notificationSentAt: new Date() },
-    where: { discordId: member.discordId },
-  });
+  await db.update(table)
+    .set({ notificationSentAt: new Date() })
+    .where(eq(table.discordId, member.discordId));
 }

@@ -1,6 +1,7 @@
-import { RegistrationStep } from "@prisma/client";
+import { eq } from "drizzle-orm";
 import { hasManageRolesPermission } from ".";
-import { prisma } from "#/main";
+import { db } from "#drizzle/db";
+import { member as table } from "#drizzle/schema";
 import type { Subcommand } from "#/types";
 import { messages } from "#/config";
 
@@ -17,9 +18,9 @@ const executeRequestsList: Subcommand = async (interaction) => {
 
   await interaction.deferReply();
 
-  const requests = await prisma.member.findMany({
-    where: { registrationStep: RegistrationStep.COMMITTEE_CONFIRMATION },
-  });
+  const requests = await db.select()
+    .from(table)
+    .where(eq(table.registrationStep, "COMMITTEE_CONFIRMATION"));
 
   const requestList = requests.map((request) => {
     const relativeNotificationDate = `<t:${Math.floor(+(request.notificationSentAt ?? Date.now()) / 1000)}:R>`;

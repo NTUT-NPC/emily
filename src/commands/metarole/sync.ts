@@ -1,6 +1,8 @@
+import { eq } from "drizzle-orm";
 import { syncMetarole } from ".";
 import type { Subcommand } from "#/types";
-import { prisma } from "#main";
+import { db } from "#drizzle/db";
+import { metarole as table } from "#drizzle/schema";
 
 const executeSyncSubcommand: Subcommand = async (interaction) => {
   if (!interaction.inGuild()) {
@@ -9,12 +11,14 @@ const executeSyncSubcommand: Subcommand = async (interaction) => {
 
   await interaction.deferReply();
 
-  const metaroles = await prisma.metarole.findMany({
-    where: { guild: BigInt(interaction.guildId) },
-  });
+  const metaroles = await db.select({
+    role: table.role,
+  })
+    .from(table)
+    .where(eq(table.guild, BigInt(interaction.guildId)));
 
-  for (const metarole of metaroles) {
-    await syncMetarole(interaction, metarole.role.toString());
+  for (const { role } of metaroles) {
+    await syncMetarole(interaction, role);
   }
 
   await interaction.editReply("已同步所有身份組群組。");

@@ -1,4 +1,4 @@
-import type { Member } from "@prisma/client";
+import type { Member } from "#types";
 
 const config = {
   registerCommands: true,

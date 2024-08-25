@@ -1,11 +1,11 @@
-import { PrismaClient } from "@prisma/client";
 import { Client, Events, GatewayIntentBits } from "discord.js";
 import { commands, register } from "#commands";
+import { client as databaseClient } from "#drizzle/db";
 import config from "#config";
 
-export const prisma = new PrismaClient();
-
 async function main() {
+  await databaseClient.connect();
+
   const client = new Client({
     intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildPresences],
   });

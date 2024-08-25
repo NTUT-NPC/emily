@@ -1,7 +1,9 @@
 import { MessageMentions } from "discord.js";
+import { eq } from "drizzle-orm";
 import { syncMetarole } from ".";
-import type { Subcommand } from "#/types";
-import { prisma } from "#main";
+import type { Subcommand } from "#types";
+import { db } from "#drizzle/db";
+import { metarole as table } from "#drizzle/schema";
 
 const executeCreateSubcommand: Subcommand = async (interaction) => {
   if (!interaction.inGuild()) {
@@ -20,13 +22,14 @@ const executeCreateSubcommand: Subcommand = async (interaction) => {
     return;
   }
 
-  const metaroleId = metarole.id;
+  const metaroleId = BigInt(metarole.id);
   const memberRoleIds = [...memberRoles].map((match) => match[1]!);
 
-  const existingMetarole = await prisma.metarole.findUnique({
-    where: { role: BigInt(metaroleId) },
-  });
-  if (existingMetarole) {
+  const [metaroleEntry] = await db.select({})
+    .from(table)
+    .where(eq(table.role, metaroleId));
+
+  if (metaroleEntry) {
     await interaction.reply({
       content: "這個身份組群組已經存在",
       ephemeral: true,
@@ -36,12 +39,10 @@ const executeCreateSubcommand: Subcommand = async (interaction) => {
 
   await interaction.deferReply();
 
-  await prisma.metarole.create({
-    data: {
-      guild: BigInt(interaction.guildId),
-      role: BigInt(metaroleId),
-      memberRoles: memberRoleIds.map((id) => BigInt(id)),
-    },
+  await db.insert(table).values({
+    guild: BigInt(interaction.guildId),
+    role: metaroleId,
+    memberRoles: memberRoleIds.map((id) => BigInt(id)),
   });
 
   await syncMetarole(interaction, metaroleId);

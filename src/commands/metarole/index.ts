@@ -3,12 +3,14 @@ import {
   PermissionFlagsBits,
   SlashCommandBuilder,
 } from "discord.js";
+import { eq } from "drizzle-orm";
 import executeCreateSubcommand from "./create";
 import executeListSubcommand from "./list";
 import executeRemoveSubcommand from "./remove";
 import executeSyncSubcommand from "./sync";
 import type { Command } from "#/types";
-import { prisma } from "#main";
+import { db } from "#drizzle/db";
+import { metarole as table } from "#drizzle/schema";
 
 export default {
   data: new SlashCommandBuilder()
@@ -80,15 +82,19 @@ export default {
 
 export async function syncMetarole(
   interaction: Interaction,
-  metaroleId: string,
+  metaroleId: bigint,
 ) {
   if (!interaction.isChatInputCommand() || !interaction.inGuild()) {
     return;
   }
 
-  const metarole = await prisma.metarole.findUnique({
-    where: { role: BigInt(metaroleId) },
-  });
+  const [metarole] = await db.select({
+    memberRoles: table.memberRoles,
+    role: table.role,
+  })
+    .from(table)
+    .where(eq(table.role, metaroleId));
+
   if (!metarole) {
     return;
   }
@@ -104,8 +110,7 @@ export async function syncMetarole(
     }
   }
 
-  await prisma.metarole.update({
-    where: { role: BigInt(metaroleId) },
-    data: { syncedAt: new Date() },
-  });
+  await db.update(table)
+    .set({ syncedAt: new Date() })
+    .where(eq(table.role, metaroleId));
 }

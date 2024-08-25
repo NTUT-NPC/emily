@@ -7,7 +7,6 @@ RUN corepack enable
 
 COPY package.json .
 COPY pnpm-lock.yaml .
-COPY prisma prisma
 
 FROM base AS prod-deps
 
@@ -23,8 +22,6 @@ COPY tsconfig.json .
 RUN pnpm run build
 
 FROM base AS production
-
-RUN pnpm dlx prisma generate --no-hints
 
 COPY --from=build /app/index.cjs .
 CMD [ "node", "index.cjs" ]
