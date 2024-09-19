@@ -1,6 +1,19 @@
-# Emily
+<p align="center">
+  <img src="docs/emily.png" alt="Emily Logo" align="center" width="128" height="128">
+</p>
 
-北科程式設計研究社 (NPC) 的 Discord 社群管理工具，[舊 Emily](https://github.com/ntut-xuan/NPC-Emily) 的 Discord.js 重製版。專案結構是基於 [書呆大學長](https://github.com/chenghsuanho/ai-chatbot)。
+<h1 align="center">Emily</h1>
+
+<p align="center">Discord 社群管理工具</p>
+
+<p align="center">
+  <a href="https://ntut.club">
+    <img
+      alt="An NPC Project"
+      src="https://img.shields.io/badge/An_NPC_Project-333?logo=data%3Aimage%2Fsvg%2Bxml%3Bbase64%2CPHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzMiAzMiIgZmlsbD0iI2ZmZiI%2BPHBhdGggZD0iTTQgNHYyNGw4LTggMTYgOFY0bC04IDh6Ii8%2BPC9zdmc%2B"
+    >
+  </a>
+</p>
 
 ## 功能
 
