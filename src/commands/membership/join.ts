@@ -20,9 +20,19 @@ const executeJoinSubcommand: Subcommand = async (interaction) => {
   const discordId = BigInt(interaction.user.id);
   const notificationChannel = interaction.client.channels.cache.get(config.membershipNotificationChannelId) as TextChannel;
 
+  // Drizzle bug: `onConflictDoNothing` does not return the inserted row on conflict.
+  // see https://github.com/drizzle-team/drizzle-orm/issues/1341
+  // let [member] = await db.insert(table)
+  //   .values({ discordId })
+  //   .onConflictDoNothing()
+  //   .returning();
+
   let [member] = await db.insert(table)
     .values({ discordId })
-    .onConflictDoNothing()
+    .onConflictDoUpdate({
+      target: [table.discordId],
+      set: { discordId },
+    })
     .returning();
 
   const replies = new Map<
