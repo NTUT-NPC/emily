@@ -32,7 +32,11 @@ const command: Command = {
       .setDescription("管理社員加入請求")
       .addSubcommand((subcommand) => subcommand
         .setName("查看")
-        .setDescription("查看正在等待幹部確認的請求"),
+        .setDescription("查看正在等待幹部確認的請求")
+        .addIntegerOption((option) => option
+          .setName("頁碼")
+          .setDescription("要查看的頁碼")
+          .setMinValue(1)),
       )
       .addSubcommand((subcommand) => subcommand
         .setName("接受")
