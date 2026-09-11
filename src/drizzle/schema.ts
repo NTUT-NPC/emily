@@ -2,7 +2,7 @@ import { bigint, integer, pgEnum, pgTable, primaryKey, serial, text, timestamp }
 
 export const metarole = pgTable("Metarole", {
   id: serial("id").primaryKey().notNull(),
-  createdAt: timestamp("createdAt").default(new Date()).notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").notNull().$onUpdate(() => new Date()),
   syncedAt: timestamp("syncedAt"),
   guild: bigint("guild", { mode: "bigint" }).notNull(),
@@ -38,7 +38,7 @@ export const registrationStep = pgEnum("RegistrationStep", [
 
 export const member = pgTable("Member", {
   id: serial("id").primaryKey().notNull(),
-  createdAt: timestamp("createdAt").default(new Date()).notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
   joinedAt: timestamp("joinedAt"),
   notificationSentAt: timestamp("notificationSentAt"),
   registrationStep: registrationStep("registrationStep").default("INTRODUCTION").notNull(),
