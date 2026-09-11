@@ -2,7 +2,12 @@ import { Client, Events, GatewayIntentBits } from "discord.js";
 import { commands, register } from "#commands";
 import executeCreateThreadButton from "#commands/directMessage/createThread";
 import { isCreateThreadButtonInteraction } from "#commands/directMessage/shared";
-import { executeJoinNotificationInteraction, isJoinNotificationInteraction } from "#commands/membership/join";
+import {
+  executeApplicantJoinInteraction,
+  executeJoinNotificationInteraction,
+  isApplicantJoinInteraction,
+  isJoinNotificationInteraction,
+} from "#commands/membership/join";
 import config from "#config";
 
 async function main() {
@@ -17,6 +22,10 @@ async function main() {
   client.on(Events.InteractionCreate, async (interaction) => {
     if (isCreateThreadButtonInteraction(interaction)) {
       await executeCreateThreadButton(interaction);
+      return;
+    }
+    if (isApplicantJoinInteraction(interaction)) {
+      await executeApplicantJoinInteraction(interaction);
       return;
     }
     if (isJoinNotificationInteraction(interaction)) {
