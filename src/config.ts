@@ -17,6 +17,7 @@ const messages = {
   join: {
     useDirectMessage: "歡迎您加入我們！建議您私訊我以確保您的隱私喔！",
     configurationMissing: "社員加入通知尚未設定或設定不明確，請聯絡伺服器管理員執行「/社員 設定通知」。",
+    configurationInvalid: "社員加入通知頻道目前無法使用，請聯絡伺服器管理員重新執行「/社員 設定通知」。",
     introduction: `# 加入社員
 很高興您願意加入我們！
 

@@ -1,4 +1,5 @@
 import { ChannelType, PermissionsBitField } from "discord.js";
+import { validateMembershipNotificationChannel } from "./notificationChannel";
 import { messages } from "#/config";
 import { db } from "#/drizzle/db";
 import { membershipConfig as table } from "#/drizzle/schema";
@@ -23,15 +24,24 @@ const executeNotificationConfigSubcommand: Subcommand = async (interaction) => {
     return;
   }
 
-  const channel = interaction.options.getChannel("頻道", true);
+  const selectedChannel = interaction.options.getChannel("頻道", true);
   const role = interaction.options.getRole("身份組", true);
   if (
-    channel.type !== ChannelType.GuildText ||
-    channel.guildId !== interaction.guildId ||
+    selectedChannel.type !== ChannelType.GuildText ||
+    selectedChannel.guildId !== interaction.guildId ||
     role.guild.id !== interaction.guildId
   ) {
     await interaction.reply({
       content: "請選擇此伺服器中的文字頻道和身份組。",
+      ephemeral: true,
+    });
+    return;
+  }
+
+  const channel = validateMembershipNotificationChannel(interaction.guild, selectedChannel);
+  if (!channel) {
+    await interaction.reply({
+      content: messages.join.configurationInvalid,
       ephemeral: true,
     });
     return;

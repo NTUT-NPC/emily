@@ -2,6 +2,7 @@ import type { ButtonInteraction, Interaction, InteractionReplyOptions, MessageAc
 import { ActionRowBuilder, ButtonBuilder, ButtonStyle, ModalBuilder, PermissionFlagsBits } from "discord.js";
 import { and, eq, isNull, sql } from "drizzle-orm";
 import { makeTextInputActionRow } from "../shared";
+import { resolveMembershipNotificationChannel } from "./notificationChannel";
 import config, { messages } from "#/config";
 import type { Member, Subcommand } from "#/types";
 import { db } from "#drizzle/db";
@@ -115,6 +116,22 @@ export async function executeApplicantJoinInteraction(interaction: ApplicantJoin
         await interaction.editReply(messages.join.configurationMissing);
         return;
       }
+      const notificationChannel = await resolveMembershipNotificationChannel(
+        interaction.client,
+        membershipConfiguration.guild.toString(),
+        membershipConfiguration.notificationChannel.toString(),
+      );
+      if (!notificationChannel) {
+        await interaction.editReply(messages.join.configurationInvalid);
+        return;
+      }
+      const [previousMember] = await db.select()
+        .from(table)
+        .where(eq(table.discordId, discordId));
+      if (!previousMember) {
+        await interaction.editReply(messages.error.generic);
+        return;
+      }
       const [member] = await db.update(table)
         .set({
           email,
@@ -135,10 +152,25 @@ export async function executeApplicantJoinInteraction(interaction: ApplicantJoin
       }
 
       if (canSendNotification(member)) {
-        const notificationChannel = interaction.client.channels.cache.get(
-          membershipConfiguration.notificationChannel.toString(),
-        ) as TextChannel;
-        await sendNotification(member, notificationChannel);
+        try {
+          await sendNotification(member, notificationChannel);
+        } catch (error) {
+          await db.update(table)
+            .set({
+              email: previousMember.email,
+              name: previousMember.name,
+              studentId: previousMember.studentId,
+              registrationStep: previousMember.registrationStep,
+              requestRevision: previousMember.requestRevision,
+              notificationSentAt: previousMember.notificationSentAt,
+            })
+            .where(and(
+              eq(table.discordId, discordId),
+              eq(table.registrationStep, "COMMITTEE_CONFIRMATION"),
+              eq(table.requestRevision, member.requestRevision),
+            ));
+          throw error;
+        }
       }
       await interaction.editReply(getApplicantJoinReply("COMMITTEE_CONFIRMATION"));
       return;
@@ -195,18 +227,24 @@ export async function executeApplicantJoinInteraction(interaction: ApplicantJoin
           return;
         }
 
+        const membershipConfiguration = await getApplicantMembershipConfiguration(
+          interaction.client,
+          interaction.user.id,
+        );
+        if (!membershipConfiguration) {
+          await interaction.editReply(messages.join.configurationMissing);
+          return;
+        }
+        const notificationChannel = await resolveMembershipNotificationChannel(
+          interaction.client,
+          membershipConfiguration.guild.toString(),
+          membershipConfiguration.notificationChannel.toString(),
+        );
+        if (!notificationChannel) {
+          await interaction.editReply(messages.join.configurationInvalid);
+          return;
+        }
         if (canSendNotification(member)) {
-          const membershipConfiguration = await getApplicantMembershipConfiguration(
-            interaction.client,
-            interaction.user.id,
-          );
-          if (!membershipConfiguration) {
-            await interaction.editReply(messages.join.configurationMissing);
-            return;
-          }
-          const notificationChannel = interaction.client.channels.cache.get(
-            membershipConfiguration.notificationChannel.toString(),
-          ) as TextChannel;
           await sendNotification(member, notificationChannel);
           await interaction.editReply(messages.join.notificationSent);
           return;
