@@ -10,6 +10,15 @@ export const metarole = pgTable("Metarole", {
   memberRoles: bigint("memberRoles", { mode: "bigint" }).array().notNull(),
 });
 
+export const dmConfig = pgTable("DmConfig", {
+  guild: bigint("guild", { mode: "bigint" }).primaryKey(),
+  parentChannel: bigint("parentChannel", { mode: "bigint" }).notNull(),
+  staffRole: bigint("staffRole", { mode: "bigint" }).notNull(),
+  panelMessage: bigint("panelMessage", { mode: "bigint" }).notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().notNull().$onUpdate(() => new Date()),
+});
+
 export const registrationStep = pgEnum("RegistrationStep", [
   "INTRODUCTION",
   "BASIC_INFORMATION",

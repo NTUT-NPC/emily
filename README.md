@@ -25,6 +25,10 @@
 
 透過對話框填寫資料，並分配身份組，自動化社員加入流程；幹部可於後臺管理社員的加入請求。
 
+### 私人聯絡討論串
+
+伺服器管理員可使用 `/私訊 設定` 指定文字頻道和幹部身份組，Emily 會在頻道中張貼操作說明。伺服器成員按下說明下方的按鈕後，Emily 會建立私人討論串並通知雙方。
+
 ## 開發
 
 請依照[慣例式提交](https://www.conventionalcommits.org/zh-hant/v1.0.0/)規範用中文或英文寫提交說明。
@@ -40,7 +44,7 @@
 
 ### 斜線指令
 
-所有斜線指令位於 `src/commands`（`index.ts` 與 `types.ts` 除外）。要增加斜線指令，請在 `src/commands` 新增一個預設匯出 `Command` 型別的檔案。`Command` 型別可以在 `src/commands/types.ts` 找到。
+所有斜線指令位於 `src/commands`（`index.ts` 除外）。要增加斜線指令，請在 `src/commands` 新增一個預設匯出 `Command` 型別的檔案，並在 `src/commands/index.ts` 註冊。`Command` 型別位於 `src/types.ts`。
 
 ## 部屬
 
@@ -60,7 +64,18 @@ docker compose up -d
 最後，用邀請連結來將機器人加入您的Discord伺服器。將「你的\_Client_ID」替換為您機器人的 Client ID：
 
 ```url
-https://discord.com/api/oauth2/authorize?client_id=你的_Client_ID&permissions=268437504&scope=bot%20applications.commands
+https://discord.com/api/oauth2/authorize?client_id=你的_Client_ID&permissions=361045691392&scope=bot%20applications.commands
+```
+
+私訊操作說明的指定頻道必須讓機器人擁有「查看頻道」、「傳送訊息」、「建立私人討論串」、「在討論串中傳送訊息」和「管理討論串」權限。幹部身份組必須擁有「查看頻道」、「在討論串中傳送訊息」和「讀取訊息歷史」權限，並設為可提及；一般使用者也必須能查看頻道、在討論串中傳送訊息和讀取訊息歷史。
+
+### 資料庫遷移
+
+部署含有資料庫結構變更的新版本前，請在能連線到資料庫的環境設定 `DATABASE_URL`，並執行：
+
+```sh
+pnpm install --frozen-lockfile
+pnpm exec drizzle-kit migrate
 ```
 
 ### 部屬到 K2

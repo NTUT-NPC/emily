@@ -1,6 +1,7 @@
 import type { ApplicationCommand, MessageComponentInteraction, ModalActionRowComponentBuilder, ModalBuilder, ModalSubmitInteraction } from "discord.js";
 import { ActionRowBuilder, DiscordjsErrorCodes, REST, Routes, TextInputBuilder, TextInputStyle } from "discord.js";
 import convertChannelNameCommand from "./convertChannelName";
+import directMessageCommand from "./directMessage";
 import membershipCommand from "./membership";
 import metaroleCommand from "./metarole";
 import { messages } from "#config";
@@ -9,6 +10,7 @@ import type { Command } from "#types";
 const commands = new Map<string, Command>();
 
 commands.set(convertChannelNameCommand.data.name!, convertChannelNameCommand);
+commands.set(directMessageCommand.data.name!, directMessageCommand);
 commands.set(membershipCommand.data.name!, membershipCommand);
 commands.set(metaroleCommand.data.name!, metaroleCommand);
 

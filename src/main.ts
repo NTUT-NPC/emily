@@ -1,5 +1,7 @@
 import { Client, Events, GatewayIntentBits } from "discord.js";
 import { commands, register } from "#commands";
+import executeCreateThreadButton from "#commands/directMessage/createThread";
+import { isCreateThreadButtonInteraction } from "#commands/directMessage/shared";
 import config from "#config";
 
 async function main() {
@@ -12,6 +14,11 @@ async function main() {
   });
 
   client.on(Events.InteractionCreate, async (interaction) => {
+    if (isCreateThreadButtonInteraction(interaction)) {
+      await executeCreateThreadButton(interaction);
+      return;
+    }
+
     if (!interaction.isCommand()) {
       return;
     }
