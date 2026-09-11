@@ -5,6 +5,10 @@ services:
       - db
     build: .
     restart: unless-stopped
+    environment:
+      DISCORD_BOT_TOKEN: ${DISCORD_BOT_TOKEN:?DISCORD_BOT_TOKEN must be set}
+      DISCORD_APPLICATION_ID: ${DISCORD_APPLICATION_ID:?DISCORD_APPLICATION_ID must be set}
+      DATABASE_URL: postgresql://postgres:password@db:5432/emily
 
   # Connect to db with postgresql://postgres:password@db:5432/emily
   db:
@@ -12,6 +16,7 @@ services:
     image: postgres
     restart: unless-stopped
     environment:
+      POSTGRES_DB: emily
       POSTGRES_PASSWORD: password
 
   # Connect to adminer with http://emily-db.example.com/
