@@ -1,9 +1,7 @@
-import { eq } from "drizzle-orm";
+import { acceptMembershipRequest } from "./accept";
 import { hasManageRolesPermission } from ".";
 import { messages } from "#/config";
 import type { Subcommand } from "#/types";
-import { db } from "#drizzle/db";
-import { membershipConfig as membershipConfigTable, member as table } from "#/drizzle/schema";
 
 const executeRequestsAccept: Subcommand = async (interaction) => {
   if (!interaction.inGuild()) {
@@ -16,51 +14,32 @@ const executeRequestsAccept: Subcommand = async (interaction) => {
     return;
   }
 
-  // requestUser is a User, but we need a GuildMember to add the role.
-  // Find the GuildMember by the User's ID.
   const requestUser = interaction.options.getUser("使用者", true);
-  const requester = interaction.guild!.members.cache.get(requestUser.id)!;
-  const discordId = BigInt(requester.id);
-
-  const [member] = await db.select()
-    .from(table)
-    .where(eq(table.discordId, discordId));
-
-  if (!member) {
-    await interaction.reply({ content: messages.error.notInDatabase, ephemeral: true });
-    return;
-  }
-
-  if (member.registrationStep !== "COMMITTEE_CONFIRMATION") {
-    await interaction.reply("這個使用者並沒有等待幹部確認的加入請求");
-    return;
-  }
-
+  const discordId = BigInt(requestUser.id);
   await interaction.deferReply();
-  const [membershipConfiguration] = await db.select({
-    membershipRole: membershipConfigTable.membershipRole,
-  })
-    .from(membershipConfigTable)
-    .where(eq(membershipConfigTable.guild, BigInt(interaction.guildId)))
-    .limit(1);
-  if (!membershipConfiguration) {
-    await interaction.editReply(messages.join.configurationMissing);
-    return;
+  const result = await acceptMembershipRequest(interaction.guild!, discordId);
+
+  switch (result.status) {
+    case "accepted":
+      await interaction.editReply(
+        `已接受 <@${requestUser.id}> 的加入請求。${result.directMessageFailed ? "（無法傳送私訊通知。）" : ""}`,
+      );
+      return;
+    case "not-found":
+      await interaction.editReply(messages.error.notInDatabase);
+      return;
+    case "stale":
+      await interaction.editReply("這個使用者並沒有等待幹部確認的加入請求");
+      return;
+    case "configuration-missing":
+      await interaction.editReply(messages.join.configurationMissing);
+      return;
+    case "resources-missing":
+      await interaction.editReply("找不到請求加入者或社員身份組，尚未接受這個加入請求。");
+      return;
+    case "role-assignment-failed":
+      await interaction.editReply("無法分配社員身份組，尚未接受這個加入請求，請稍後再試。");
   }
-
-  await db.update(table)
-    .set({
-      registrationStep: "COMPLETE",
-      joinedAt: new Date(),
-    })
-    .where(eq(table.discordId, discordId));
-
-  const membershipRole = interaction.guild!.roles.cache.get(
-    membershipConfiguration.membershipRole.toString(),
-  )!;
-  await requester.roles.add(membershipRole);
-  await requester.send(messages.join.accept);
-  await interaction.editReply(`已接受 <@${requester.id}> 的加入請求。`);
 };
 
 export default executeRequestsAccept;

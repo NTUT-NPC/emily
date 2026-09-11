@@ -2,6 +2,7 @@ import type { ButtonInteraction, Interaction, InteractionReplyOptions, MessageAc
 import { ActionRowBuilder, ButtonBuilder, ButtonStyle, ModalBuilder, PermissionFlagsBits } from "discord.js";
 import { and, eq, isNull, sql } from "drizzle-orm";
 import { makeTextInputActionRow } from "../shared";
+import { acceptMembershipRequest } from "./accept";
 import { resolveMembershipNotificationChannel } from "./notificationChannel";
 import config, { messages } from "#/config";
 import type { Member, Subcommand } from "#/types";
@@ -581,84 +582,30 @@ async function acceptJoinNotification(
   discordId: bigint,
   requestRevision: number,
 ) {
-  const [pendingMember] = await db.select()
-    .from(table)
-    .where(eq(table.discordId, discordId));
-  if (
-    !pendingMember ||
-    pendingMember.registrationStep !== "COMMITTEE_CONFIRMATION" ||
-    pendingMember.requestRevision !== requestRevision
-  ) {
-    await replyWithStaleNotification(interaction);
-    return;
-  }
-
-  const guild = interaction.guild!;
-  const [membershipConfiguration] = await db.select({
-    membershipRole: membershipConfigTable.membershipRole,
-  })
-    .from(membershipConfigTable)
-    .where(eq(membershipConfigTable.guild, BigInt(guild.id)))
-    .limit(1);
-  if (!membershipConfiguration) {
+  const result = await acceptMembershipRequest(
+    interaction.guild!,
+    discordId,
+    requestRevision,
+  );
+  if (result.status === "configuration-missing") {
     await interaction.editReply(messages.join.configurationMissing);
     return;
   }
-  const [requester, membershipRole] = await Promise.all([
-    guild.members.fetch(discordId.toString()).catch(() => null),
-    guild.roles.fetch(membershipConfiguration.membershipRole.toString()).catch(() => null),
-  ]);
-  if (!requester || !membershipRole) {
+  if (result.status === "resources-missing") {
     await interaction.editReply("找不到請求加入者或社員身份組，尚未接受這個加入請求。");
     return;
   }
-
-  const joinedAt = new Date();
-  const [member] = await db.update(table)
-    .set({
-      registrationStep: "COMPLETE",
-      joinedAt,
-    })
-    .where(and(
-      eq(table.discordId, discordId),
-      eq(table.registrationStep, "COMMITTEE_CONFIRMATION"),
-      eq(table.requestRevision, requestRevision),
-    ))
-    .returning();
-  if (!member) {
+  if (result.status === "role-assignment-failed") {
+    await interaction.editReply("無法分配社員身份組，尚未接受這個加入請求，請稍後再試。");
+    return;
+  }
+  if (result.status !== "accepted") {
     await replyWithStaleNotification(interaction);
     return;
   }
 
-  try {
-    await requester.roles.add(membershipRole);
-  } catch (error) {
-    await db.update(table)
-      .set({
-        registrationStep: "COMMITTEE_CONFIRMATION",
-        joinedAt: null,
-      })
-      .where(and(
-        eq(table.discordId, discordId),
-        eq(table.registrationStep, "COMPLETE"),
-        eq(table.joinedAt, joinedAt),
-        eq(table.requestRevision, requestRevision),
-      ));
-    console.error(`Failed to add membership role to ${discordId}.`, error);
-    await interaction.editReply("無法分配社員身份組，尚未接受這個加入請求，請稍後再試。");
-    return;
-  }
-
-  let directMessageFailed = false;
-  try {
-    await requester.send(messages.join.accept);
-  } catch (error) {
-    directMessageFailed = true;
-    console.error(`Failed to notify accepted member ${discordId}.`, error);
-  }
-
   await interaction.editReply(
-    `<@${interaction.user.id}> 已接受 <@${discordId}> 的加入請求。${directMessageFailed ? "（無法傳送私訊通知。）" : ""}`,
+    `<@${interaction.user.id}> 已接受 <@${discordId}> 的加入請求。${result.directMessageFailed ? "（無法傳送私訊通知。）" : ""}`,
   );
 }
 
