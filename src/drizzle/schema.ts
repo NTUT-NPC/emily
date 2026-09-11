@@ -1,4 +1,4 @@
-import { bigint, pgEnum, pgTable, primaryKey, serial, text, timestamp } from "drizzle-orm/pg-core";
+import { bigint, integer, pgEnum, pgTable, primaryKey, serial, text, timestamp } from "drizzle-orm/pg-core";
 
 export const metarole = pgTable("Metarole", {
   id: serial("id").primaryKey().notNull(),
@@ -43,6 +43,7 @@ export const member = pgTable("Member", {
   notificationSentAt: timestamp("notificationSentAt"),
   registrationStep: registrationStep("registrationStep").default("INTRODUCTION").notNull(),
   discordId: bigint("discordId", { mode: "bigint" }).notNull().unique(),
+  requestRevision: integer("requestRevision").default(0).notNull(),
   name: text("name"),
   email: text("email"),
   studentId: text("studentId"),
