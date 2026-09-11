@@ -106,6 +106,7 @@ export async function executeApplicantJoinInteraction(interaction: ApplicantJoin
       const email = interaction.fields.getTextInputValue("emailInput");
       const name = interaction.fields.getTextInputValue("nameInput");
       const studentId = interaction.fields.getTextInputValue("studentIdInput");
+      const discordId = BigInt(interaction.user.id);
       const [member] = await db.update(table)
         .set({
           email,
@@ -114,8 +115,16 @@ export async function executeApplicantJoinInteraction(interaction: ApplicantJoin
           registrationStep: "COMMITTEE_CONFIRMATION",
           requestRevision: sql`${table.requestRevision} + 1`,
         })
-        .where(eq(table.discordId, BigInt(interaction.user.id)))
+        .where(and(
+          eq(table.discordId, discordId),
+          eq(table.registrationStep, "BASIC_INFORMATION"),
+        ))
         .returning();
+
+      if (!member) {
+        await replyWithCurrentApplicantState(interaction, discordId);
+        return;
+      }
 
       if (canSendNotification(member)) {
         const notificationChannel = interaction.client.channels.cache.get(
@@ -135,26 +144,46 @@ export async function executeApplicantJoinInteraction(interaction: ApplicantJoin
     await interaction.deferReply();
     const discordId = BigInt(interaction.user.id);
     switch (action) {
-      case "introduction-next":
-        await db.update(table)
+      case "introduction-next": {
+        const [member] = await db.update(table)
           .set({ registrationStep: "BASIC_INFORMATION" })
-          .where(eq(table.discordId, discordId))
+          .where(and(
+            eq(table.discordId, discordId),
+            eq(table.registrationStep, "INTRODUCTION"),
+          ))
           .returning();
+        if (!member) {
+          await replyWithCurrentApplicantState(interaction, discordId);
+          return;
+        }
         await interaction.editReply(getApplicantJoinReply("BASIC_INFORMATION"));
         return;
-      case "committee-confirmation-edit":
-        await db.update(table)
+      }
+      case "committee-confirmation-edit": {
+        const [member] = await db.update(table)
           .set({ registrationStep: "BASIC_INFORMATION" })
-          .where(eq(table.discordId, discordId))
+          .where(and(
+            eq(table.discordId, discordId),
+            eq(table.registrationStep, "COMMITTEE_CONFIRMATION"),
+          ))
           .returning();
+        if (!member) {
+          await replyWithCurrentApplicantState(interaction, discordId);
+          return;
+        }
         await interaction.editReply(getApplicantJoinReply("BASIC_INFORMATION"));
         return;
+      }
       case "committee-confirmation-notify": {
         const [member] = await db.select()
           .from(table)
           .where(eq(table.discordId, discordId));
         if (!member) {
           await interaction.editReply(messages.error.generic);
+          return;
+        }
+        if (member.registrationStep !== "COMMITTEE_CONFIRMATION") {
+          await interaction.editReply(getApplicantJoinReply(member.registrationStep));
           return;
         }
 
@@ -176,6 +205,18 @@ export async function executeApplicantJoinInteraction(interaction: ApplicantJoin
     console.error("Failed to handle applicant membership join interaction.", error);
     await replyWithApplicantInteractionError(interaction);
   }
+}
+
+async function replyWithCurrentApplicantState(
+  interaction: ApplicantJoinInteraction,
+  discordId: bigint,
+) {
+  const [member] = await db.select()
+    .from(table)
+    .where(eq(table.discordId, discordId));
+  await interaction.editReply(
+    member ? getApplicantJoinReply(member.registrationStep) : messages.error.generic,
+  );
 }
 
 function getApplicantJoinReply(
