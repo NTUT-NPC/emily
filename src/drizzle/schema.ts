@@ -28,6 +28,13 @@ export const dmThread = pgTable("DmThread", {
 }, (table) => ({
   primaryKey: primaryKey({ columns: [table.guild, table.userId] }),
 }));
+export const membershipConfig = pgTable("MembershipConfig", {
+  guild: bigint("guild", { mode: "bigint" }).primaryKey(),
+  notificationChannel: bigint("notificationChannel", { mode: "bigint" }).notNull(),
+  membershipRole: bigint("membershipRole", { mode: "bigint" }).notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().notNull().$onUpdate(() => new Date()),
+});
 
 export const registrationStep = pgEnum("RegistrationStep", [
   "INTRODUCTION",

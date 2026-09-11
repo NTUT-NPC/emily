@@ -1,11 +1,11 @@
 import type { ButtonInteraction, Interaction, InteractionReplyOptions, MessageActionRowComponentBuilder, MessageEditOptions, ModalSubmitInteraction, TextChannel } from "discord.js";
 import { ActionRowBuilder, ButtonBuilder, ButtonStyle, ModalBuilder, PermissionFlagsBits } from "discord.js";
 import { and, eq, isNull, sql } from "drizzle-orm";
-import { makeTextInputActionRow } from "..";
+import { makeTextInputActionRow } from "../shared";
 import config, { messages } from "#/config";
 import type { Member, Subcommand } from "#/types";
 import { db } from "#drizzle/db";
-import { member as table } from "#drizzle/schema";
+import { membershipConfig as membershipConfigTable, member as table } from "#/drizzle/schema";
 
 const executeJoinSubcommand: Subcommand = async (interaction) => {
   // 這個指令限私訊使用
@@ -107,6 +107,14 @@ export async function executeApplicantJoinInteraction(interaction: ApplicantJoin
       const name = interaction.fields.getTextInputValue("nameInput");
       const studentId = interaction.fields.getTextInputValue("studentIdInput");
       const discordId = BigInt(interaction.user.id);
+      const membershipConfiguration = await getApplicantMembershipConfiguration(
+        interaction.client,
+        interaction.user.id,
+      );
+      if (!membershipConfiguration) {
+        await interaction.editReply(messages.join.configurationMissing);
+        return;
+      }
       const [member] = await db.update(table)
         .set({
           email,
@@ -128,7 +136,7 @@ export async function executeApplicantJoinInteraction(interaction: ApplicantJoin
 
       if (canSendNotification(member)) {
         const notificationChannel = interaction.client.channels.cache.get(
-          config.membershipNotificationChannelId,
+          membershipConfiguration.notificationChannel.toString(),
         ) as TextChannel;
         await sendNotification(member, notificationChannel);
       }
@@ -188,8 +196,16 @@ export async function executeApplicantJoinInteraction(interaction: ApplicantJoin
         }
 
         if (canSendNotification(member)) {
+          const membershipConfiguration = await getApplicantMembershipConfiguration(
+            interaction.client,
+            interaction.user.id,
+          );
+          if (!membershipConfiguration) {
+            await interaction.editReply(messages.join.configurationMissing);
+            return;
+          }
           const notificationChannel = interaction.client.channels.cache.get(
-            config.membershipNotificationChannelId,
+            membershipConfiguration.notificationChannel.toString(),
           ) as TextChannel;
           await sendNotification(member, notificationChannel);
           await interaction.editReply(messages.join.notificationSent);
@@ -217,6 +233,33 @@ async function replyWithCurrentApplicantState(
   await interaction.editReply(
     member ? getApplicantJoinReply(member.registrationStep) : messages.error.generic,
   );
+}
+
+async function getApplicantMembershipConfiguration(
+  client: Interaction["client"],
+  applicantId: string,
+) {
+  const configurations = await db.select({
+    guild: membershipConfigTable.guild,
+    notificationChannel: membershipConfigTable.notificationChannel,
+    membershipRole: membershipConfigTable.membershipRole,
+  })
+    .from(membershipConfigTable);
+  const matchingConfigurations = [];
+  for (const configuration of configurations) {
+    const guild = await client.guilds.fetch(configuration.guild.toString()).catch(() => undefined);
+    if (!guild) {
+      continue;
+    }
+    const applicant = await guild.members.fetch(applicantId).catch(() => undefined);
+    if (applicant) {
+      matchingConfigurations.push(configuration);
+      if (matchingConfigurations.length > 1) {
+        return;
+      }
+    }
+  }
+  return matchingConfigurations[0];
 }
 
 function getApplicantJoinReply(
@@ -513,9 +556,19 @@ async function acceptJoinNotification(
   }
 
   const guild = interaction.guild!;
+  const [membershipConfiguration] = await db.select({
+    membershipRole: membershipConfigTable.membershipRole,
+  })
+    .from(membershipConfigTable)
+    .where(eq(membershipConfigTable.guild, BigInt(guild.id)))
+    .limit(1);
+  if (!membershipConfiguration) {
+    await interaction.editReply(messages.join.configurationMissing);
+    return;
+  }
   const [requester, membershipRole] = await Promise.all([
     guild.members.fetch(discordId.toString()).catch(() => null),
-    guild.roles.fetch(config.membershipRoleId).catch(() => null),
+    guild.roles.fetch(membershipConfiguration.membershipRole.toString()).catch(() => null),
   ]);
   if (!requester || !membershipRole) {
     await interaction.editReply("找不到請求加入者或社員身份組，尚未接受這個加入請求。");

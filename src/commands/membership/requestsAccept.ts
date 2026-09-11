@@ -1,9 +1,9 @@
 import { eq } from "drizzle-orm";
 import { hasManageRolesPermission } from ".";
-import config, { messages } from "#/config";
+import { messages } from "#/config";
 import type { Subcommand } from "#/types";
 import { db } from "#drizzle/db";
-import { member as table } from "#drizzle/schema";
+import { membershipConfig as membershipConfigTable, member as table } from "#/drizzle/schema";
 
 const executeRequestsAccept: Subcommand = async (interaction) => {
   if (!interaction.inGuild()) {
@@ -37,6 +37,16 @@ const executeRequestsAccept: Subcommand = async (interaction) => {
   }
 
   await interaction.deferReply();
+  const [membershipConfiguration] = await db.select({
+    membershipRole: membershipConfigTable.membershipRole,
+  })
+    .from(membershipConfigTable)
+    .where(eq(membershipConfigTable.guild, BigInt(interaction.guildId)))
+    .limit(1);
+  if (!membershipConfiguration) {
+    await interaction.editReply(messages.join.configurationMissing);
+    return;
+  }
 
   await db.update(table)
     .set({
@@ -45,7 +55,9 @@ const executeRequestsAccept: Subcommand = async (interaction) => {
     })
     .where(eq(table.discordId, discordId));
 
-  const membershipRole = interaction.guild!.roles.cache.get(config.membershipRoleId)!;
+  const membershipRole = interaction.guild!.roles.cache.get(
+    membershipConfiguration.membershipRole.toString(),
+  )!;
   await requester.roles.add(membershipRole);
   await requester.send(messages.join.accept);
   await interaction.editReply(`已接受 <@${requester.id}> 的加入請求。`);
