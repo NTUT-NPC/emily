@@ -14,7 +14,11 @@ import { handleInteractionError } from "#interactionError";
 
 async function main() {
   const client = new Client({
-    intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildPresences],
+    intents: [
+      GatewayIntentBits.Guilds,
+      GatewayIntentBits.GuildMembers,
+      GatewayIntentBits.GuildPresences,
+    ],
   });
 
   client.once(Events.ClientReady, (c) => {
