@@ -1,4 +1,4 @@
-import { bigint, pgEnum, pgTable, serial, text, timestamp } from "drizzle-orm/pg-core";
+import { bigint, pgEnum, pgTable, primaryKey, serial, text, timestamp } from "drizzle-orm/pg-core";
 
 export const metarole = pgTable("Metarole", {
   id: serial("id").primaryKey().notNull(),
@@ -18,6 +18,16 @@ export const dmConfig = pgTable("DmConfig", {
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().notNull().$onUpdate(() => new Date()),
 });
+
+export const dmThread = pgTable("DmThread", {
+  guild: bigint("guild", { mode: "bigint" }).notNull(),
+  userId: bigint("userId", { mode: "bigint" }).notNull(),
+  thread: bigint("thread", { mode: "bigint" }).notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().notNull().$onUpdate(() => new Date()),
+}, (table) => ({
+  primaryKey: primaryKey({ columns: [table.guild, table.userId] }),
+}));
 
 export const registrationStep = pgEnum("RegistrationStep", [
   "INTRODUCTION",

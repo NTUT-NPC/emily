@@ -15,6 +15,13 @@
       "when": 1789151124505,
       "tag": "0001_misty_slapstick",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1789312451124,
+      "tag": "0002_same_callisto",
+      "breakpoints": true
     }
   ]
 }
