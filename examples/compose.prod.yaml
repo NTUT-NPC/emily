@@ -13,9 +13,7 @@ services:
       retries: 10
 
   migrate:
-    build:
-      context: .
-      target: migrate
+    image: ghcr.io/ntut-npc/emily-migrate:${EMILY_IMAGE_TAG:?EMILY_IMAGE_TAG must be set}
     depends_on:
       db:
         condition: service_healthy
@@ -28,9 +26,7 @@ services:
     depends_on:
       migrate:
         condition: service_completed_successfully
-    build:
-      context: .
-      target: production
+    image: ghcr.io/ntut-npc/emily:${EMILY_IMAGE_TAG:?EMILY_IMAGE_TAG must be set}
     restart: unless-stopped
     environment:
       DISCORD_BOT_TOKEN: ${DISCORD_BOT_TOKEN:?DISCORD_BOT_TOKEN must be set}

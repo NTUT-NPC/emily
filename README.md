@@ -48,16 +48,24 @@
 
 ## 部屬
 
-你可以用 `Dockerfile` 和 `examples` 目錄的各種範例 `compose.yaml` 在 Docker 部屬這個機器人。大略步驟如下：
+Production images are published to GitHub Container Registry for each semver release:
+
+- `ghcr.io/ntut-npc/emily:<version>` — Emily bot
+- `ghcr.io/ntut-npc/emily-migrate:<version>` — database migration job
+
+The production server only needs `compose.yaml` and `.env`; source code and pnpm are not required.
 
 ```sh
-git clone https://github.com/NTUT-NPC/emily
-cd emily
-cp examples/compose.prod.yaml compose.yaml
-cp examples/.env .
-# 用文字編輯器填寫 `.env` 檔案
+mkdir -p /srv/emily
+cd /srv/emily
+# 將 examples/compose.prod.yaml 儲存為 compose.yaml
+# 將 examples/.env 儲存為 .env，並填入實際值與 image tag
+docker login ghcr.io
+docker compose pull
 docker compose up -d
 ```
+
+Compose waits for PostgreSQL to become healthy, runs the migration image, and starts Emily only after the migration succeeds. Set `EMILY_IMAGE_TAG` to the release version to deploy; avoid using `latest` for production rollbacks.
 
 到 [Discord Developers](https://discord.com/developers/applications) 網站建立一個機器人。啟用 `Privileged Gateway Intents` 中的 `Presence Intent` 和 `Server Members Intent`。
 
@@ -71,19 +79,12 @@ https://discord.com/api/oauth2/authorize?client_id=你的_Client_ID&permissions=
 
 ### 資料庫遷移
 
-部署含有資料庫結構變更的新版本前，請在能連線到資料庫的環境設定 `DATABASE_URL`，並執行：
-
-```sh
-pnpm install --frozen-lockfile
-pnpm exec drizzle-kit migrate
-```
+資料庫遷移會由 `migrate` container 自動執行，不需要在 production server 安裝 pnpm 或 drizzle-kit。只有 migration 成功後，`app` container 才會啟動。
 
 ### 部屬到 K2
 
-如果要部屬到社團的伺服器，可以參考以下這些指令：
+如果 K2 可以連線 GitHub Container Registry，將 `compose.yaml` 和 `.env` 放到 `/srv/emily` 後執行：
 
 ```sh
-docker build . -t emily
-docker save emily | docker -H ssh://k2.ntut.club load
-ssh k2.ntut.club 'docker compose -f /srv/emily/compose.yaml up -d'
+ssh k2.ntut.club 'cd /srv/emily && docker login ghcr.io && docker compose pull && docker compose up -d'
 ```
