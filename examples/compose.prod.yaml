@@ -1,39 +1,33 @@
 services:
+  app:
+    container_name: emily
+    image: ghcr.io/ntut-npc/emily:0.1.1
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+    restart: unless-stopped
+    env_file: emily.env
+
+  migrate:
+    image: ghcr.io/ntut-npc/emily-migrate:0.1.1
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: "no"
+    env_file: emily.env
+
   db:
     container_name: emily-db
-    image: postgres
+    image: postgres:16-alpine
+    volumes:
+      - ./pgdata:/var/lib/postgresql/data
     restart: unless-stopped
-    environment:
-      POSTGRES_DB: emily
-      POSTGRES_PASSWORD: password
+    env_file: db.env
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres -d emily"]
       interval: 5s
       timeout: 5s
       retries: 10
-
-  migrate:
-    image: ghcr.io/ntut-npc/emily-migrate:${EMILY_IMAGE_TAG:?EMILY_IMAGE_TAG must be set}
-    depends_on:
-      db:
-        condition: service_healthy
-    environment:
-      DATABASE_URL: postgresql://postgres:password@db:5432/emily
-    restart: "no"
-
-  app:
-    container_name: emily
-    depends_on:
-      migrate:
-        condition: service_completed_successfully
-    image: ghcr.io/ntut-npc/emily:${EMILY_IMAGE_TAG:?EMILY_IMAGE_TAG must be set}
-    restart: unless-stopped
-    environment:
-      DISCORD_BOT_TOKEN: ${DISCORD_BOT_TOKEN:?DISCORD_BOT_TOKEN must be set}
-      DISCORD_APPLICATION_ID: ${DISCORD_APPLICATION_ID:?DISCORD_APPLICATION_ID must be set}
-      DATABASE_URL: postgresql://postgres:password@db:5432/emily
-
-  # Connect to adminer with http://emily-db.example.com/
   adminer:
     container_name: emily-adminer
     image: adminer
