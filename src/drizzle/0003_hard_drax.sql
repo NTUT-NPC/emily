@@ -1,1 +1,1 @@
-ALTER TABLE "Member" ADD COLUMN "requestRevision" integer DEFAULT 0 NOT NULL;
+ALTER TABLE "Member" ADD COLUMN IF NOT EXISTS "requestRevision" integer DEFAULT 0 NOT NULL;
