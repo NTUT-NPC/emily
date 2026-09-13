@@ -73,9 +73,9 @@ export default async function executeCreateThreadButton(interaction: ButtonInter
       await interaction.editReply(memberError);
       return;
     }
-
+    const threadName = member.nickname ?? interaction.user.globalName ?? interaction.user.username;
     thread = await channel.threads.create({
-      name: `私訊-${interaction.user.id}`,
+      name: `私訊-${threadName}`.slice(0, 100),
       type: ChannelType.PrivateThread,
       autoArchiveDuration: ThreadAutoArchiveDuration.OneDay,
       invitable: false,
