@@ -28,11 +28,11 @@ const executeConfigSubcommand: Subcommand = async (interaction) => {
   let panelSendFailed = false;
 
   try {
-    await interaction.deferReply({ ephemeral: true });
+    await interaction.deferReply();
     const manager = await guild.members.fetch(interaction.user.id);
 
     if (!manager.permissions.has(manageDmPermission)) {
-      await interaction.editReply("必須有管理伺服器的權限。");
+      await replyEphemeral(interaction, "必須有管理伺服器的權限。");
       return;
     }
 
@@ -51,16 +51,13 @@ const executeConfigSubcommand: Subcommand = async (interaction) => {
       !staffRole ||
       staffRole.guild.id !== interaction.guildId
     ) {
-      await interaction.editReply("請選擇此伺服器中的文字頻道和身份組。");
+      await replyEphemeral(interaction, "請選擇此伺服器中的文字頻道和身份組。");
       return;
     }
 
     const configurationError = validateDmConfiguration(channel, staffRole, botMember);
     if (configurationError) {
-      await interaction.editReply({
-        content: configurationError,
-        allowedMentions: { parse: [] },
-      });
+      await replyEphemeral(interaction, configurationError);
       return;
     }
 
@@ -133,17 +130,9 @@ const executeConfigSubcommand: Subcommand = async (interaction) => {
   } catch (error) {
     console.error(`Failed to configure /私訊 設定 in guild ${interaction.guildId}.`, error);
     try {
-      const reply = {
-        content: panelSendFailed
-          ? "無法在指定頻道傳送私訊操作說明，設定未變更。請檢查機器人權限後再試一次。"
-          : messages.error.generic,
-        allowedMentions: { parse: [] },
-      };
-      if (interaction.deferred || interaction.replied) {
-        await interaction.editReply(reply);
-      } else {
-        await interaction.reply({ ...reply, ephemeral: true });
-      }
+      await replyEphemeral(interaction, panelSendFailed
+        ? "無法在指定頻道傳送私訊操作說明，設定未變更。請檢查機器人權限後再試一次。"
+        : messages.error.generic);
     } catch (replyError) {
       console.error("Failed to report /私訊 設定 error to the user.", replyError);
     }
@@ -151,10 +140,9 @@ const executeConfigSubcommand: Subcommand = async (interaction) => {
   }
 
   try {
-    await interaction.deleteReply();
-    await interaction.followUp({
-      content: "已儲存 /私訊 設定，並在指定頻道傳送操作說明。",
-      allowedMentions: { parse: [] },
+    await interaction.editReply({
+      content: `已儲存 /私訊 設定，並在指定頻道傳送操作說明。`,
+      allowedMentions: { users: [interaction.user.id] },
     });
   } catch (error) {
     console.error(`Posted the /私訊 instruction panel, but failed to confirm it to ${interaction.user.id}.`, error);
@@ -162,3 +150,24 @@ const executeConfigSubcommand: Subcommand = async (interaction) => {
 };
 
 export default executeConfigSubcommand;
+
+async function replyEphemeral(
+  interaction: Parameters<Subcommand>[0],
+  content: string,
+) {
+  if (!interaction.deferred && !interaction.replied) {
+    await interaction.reply({ content, ephemeral: true });
+    return;
+  }
+
+  try {
+    await interaction.deleteReply();
+  } catch (error) {
+    console.error("Failed to delete the public configuration response.", error);
+  }
+  await interaction.followUp({
+    content,
+    ephemeral: true,
+    allowedMentions: { parse: [] },
+  });
+}
