@@ -80,16 +80,21 @@ export default async function executeCreateThreadButton(interaction: ButtonInter
         return;
       }
 
-      const notifyThread = async (targetThread: ThreadChannel) => {
+      const notifyThread = async (targetThread: ThreadChannel, mentionStaffRole: boolean) => {
         const notification = await targetThread.send({
-          content: `${userMention(interaction.user.id)} ${roleMention(staffRole.id)}`,
+          content: mentionStaffRole
+            ? `${userMention(interaction.user.id)} ${roleMention(staffRole.id)}`
+            : userMention(interaction.user.id),
           allowedMentions: {
             parse: [],
             users: [interaction.user.id],
-            roles: [staffRole.id],
+            roles: mentionStaffRole ? [staffRole.id] : [],
           },
         });
-        if (notification.flags.has(MessageFlags.FailedToMentionSomeRolesInThread)) {
+        if (
+          mentionStaffRole &&
+          notification.flags.has(MessageFlags.FailedToMentionSomeRolesInThread)
+        ) {
           staffMentionFailed = true;
           throw new Error("Discord could not add every mentioned staff member to the private thread.");
         }
@@ -120,7 +125,7 @@ export default async function executeCreateThreadButton(interaction: ButtonInter
             await thread.setArchived(false, "重新開啟私人聯絡討論串");
           }
           await thread.members.add(interaction.user.id, "重新加入私人聯絡討論串");
-          await notifyThread(thread);
+          await notifyThread(thread, false);
           await tx.update(threadTable)
             .set({ updatedAt: new Date() })
             .where(and(
@@ -162,7 +167,7 @@ export default async function executeCreateThreadButton(interaction: ButtonInter
           },
         });
       await thread.members.add(interaction.user.id, "加入私訊按鈕使用者");
-      await notifyThread(thread);
+      await notifyThread(thread, true);
     });
   } catch (error) {
     console.error(`Failed to create a private contact thread for ${interaction.user.id} in guild ${interaction.guildId}.`, error);
