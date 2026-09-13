@@ -1,16 +1,4 @@
 services:
-  app:
-    container_name: emily
-    depends_on:
-      - db
-    build: .
-    restart: unless-stopped
-    environment:
-      DISCORD_BOT_TOKEN: ${DISCORD_BOT_TOKEN:?DISCORD_BOT_TOKEN must be set}
-      DISCORD_APPLICATION_ID: ${DISCORD_APPLICATION_ID:?DISCORD_APPLICATION_ID must be set}
-      DATABASE_URL: postgresql://postgres:password@db:5432/emily
-
-  # Connect to db with postgresql://postgres:password@db:5432/emily
   db:
     container_name: emily-db
     image: postgres
@@ -18,6 +6,36 @@ services:
     environment:
       POSTGRES_DB: emily
       POSTGRES_PASSWORD: password
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d emily"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  migrate:
+    build:
+      context: .
+      target: migrate
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql://postgres:password@db:5432/emily
+    restart: "no"
+
+  app:
+    container_name: emily
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+    build:
+      context: .
+      target: production
+    restart: unless-stopped
+    environment:
+      DISCORD_BOT_TOKEN: ${DISCORD_BOT_TOKEN:?DISCORD_BOT_TOKEN must be set}
+      DISCORD_APPLICATION_ID: ${DISCORD_APPLICATION_ID:?DISCORD_APPLICATION_ID must be set}
+      DATABASE_URL: postgresql://postgres:password@db:5432/emily
 
   # Connect to adminer with http://emily-db.example.com/
   adminer:
