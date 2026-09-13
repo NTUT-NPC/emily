@@ -151,7 +151,8 @@ const executeConfigSubcommand: Subcommand = async (interaction) => {
   }
 
   try {
-    await interaction.editReply({
+    await interaction.deleteReply();
+    await interaction.followUp({
       content: "已儲存 /私訊 設定，並在指定頻道傳送操作說明。",
       allowedMentions: { parse: [] },
     });
