@@ -1,11 +1,13 @@
-import type { InteractionReplyOptions, MessageActionRowComponentBuilder, MessageEditOptions, TextChannel } from "discord.js";
-import { ActionRowBuilder, ButtonBuilder, ButtonStyle, ModalBuilder } from "discord.js";
-import { eq } from "drizzle-orm";
-import { makeTextInputActionRow, showModalAndGetSubmission } from "..";
+import type { ButtonInteraction, Interaction, InteractionReplyOptions, MessageActionRowComponentBuilder, MessageEditOptions, ModalSubmitInteraction, TextChannel } from "discord.js";
+import { ActionRowBuilder, ButtonBuilder, ButtonStyle, ModalBuilder, PermissionFlagsBits } from "discord.js";
+import { and, eq, isNull, sql } from "drizzle-orm";
+import { makeTextInputActionRow } from "../shared";
+import { acceptMembershipRequest } from "./accept";
+import { resolveMembershipNotificationChannel } from "./notificationChannel";
 import config, { messages } from "#/config";
 import type { Member, Subcommand } from "#/types";
 import { db } from "#drizzle/db";
-import { member as table } from "#drizzle/schema";
+import { membershipConfig as membershipConfigTable, member as table } from "#/drizzle/schema";
 
 const executeJoinSubcommand: Subcommand = async (interaction) => {
   // 這個指令限私訊使用
@@ -18,7 +20,6 @@ const executeJoinSubcommand: Subcommand = async (interaction) => {
   }
 
   const discordId = BigInt(interaction.user.id);
-  const notificationChannel = interaction.client.channels.cache.get(config.membershipNotificationChannelId) as TextChannel;
 
   // Drizzle bug: `onConflictDoNothing` does not return the inserted row on conflict.
   // see https://github.com/drizzle-team/drizzle-orm/issues/1341
@@ -27,7 +28,7 @@ const executeJoinSubcommand: Subcommand = async (interaction) => {
   //   .onConflictDoNothing()
   //   .returning();
 
-  let [member] = await db.insert(table)
+  const [member] = await db.insert(table)
     .values({ discordId })
     .onConflictDoUpdate({
       target: [table.discordId],
@@ -35,88 +36,305 @@ const executeJoinSubcommand: Subcommand = async (interaction) => {
     })
     .returning();
 
-  const replies = new Map<
-    Member["registrationStep"],
-    InteractionReplyOptions & MessageEditOptions | string
-  >();
-  replies.set("INTRODUCTION", getIntroductionReply());
-  replies.set("BASIC_INFORMATION", getBasicInformationReply());
-  replies.set("COMMITTEE_CONFIRMATION", getCommitteeConfirmation());
-  replies.set("COMPLETE", messages.join.alreadyJoined);
-
-  const reply = replies.get(member.registrationStep) ?? messages.error.generic;
-  const response = await interaction.reply(reply);
-
-  const buttonCollector = response.createMessageComponentCollector();
-  buttonCollector.on("collect", async (interaction) => {
-    switch (interaction.customId) {
-      case "introductionNext":
-        [member] = await db.update(table)
-          .set({ registrationStep: "BASIC_INFORMATION" })
-          .where(eq(table.discordId, discordId))
-          .returning();
-
-        await interaction.reply(replies.get("BASIC_INFORMATION")!);
-        break;
-
-      case "basicInformationShowModal": {
-        // Prevent the modal from opening if the user is already a member.
-        // This happens when the committee confirms the member while user is filling the form.
-        if (member.registrationStep === "COMPLETE") {
-          await interaction.reply(messages.join.alreadyJoined);
-          return;
-        }
-
-        const submission = await showModalAndGetSubmission(interaction, getBasicInformationModal());
-        const email = submission.fields.getTextInputValue("emailInput");
-        const name = submission.fields.getTextInputValue("nameInput");
-        const studentId = submission.fields.getTextInputValue("studentIdInput");
-        [member] = await db.update(table)
-          .set({ email, name, studentId, registrationStep: "COMMITTEE_CONFIRMATION" })
-          .where(eq(table.discordId, discordId))
-          .returning();
-
-        if (canSendNotification(member)) {
-          await sendNotification(member, notificationChannel);
-        }
-        await submission.reply(replies.get("COMMITTEE_CONFIRMATION")!);
-        break;
-      }
-
-      case "committeeConfirmationEdit":
-        [member] = await db.update(table)
-          .set({ registrationStep: "BASIC_INFORMATION" })
-          .where(eq(table.discordId, discordId))
-          .returning();
-
-        await interaction.reply(replies.get("BASIC_INFORMATION")!);
-        break;
-
-      case "committeeConfirmationNotify": {
-        if (canSendNotification(member)) {
-          await sendNotification(member, notificationChannel);
-          await interaction.reply(messages.join.notificationSent);
-          return;
-        }
-
-        await interaction.reply({
-          content: messages.join.notificationTimeout(member.notificationSentAt!),
-          ephemeral: true,
-        });
-        break;
-      }
-
-      default:
-        break;
-    }
-  });
+  await interaction.reply(getApplicantJoinReply(member.registrationStep));
 };
 
 export default executeJoinSubcommand;
 
+const applicantJoinCustomIdPrefix = "membershipJoinApplicant";
+
+type ApplicantJoinAction =
+  | "introduction-next"
+  | "basic-information-show-modal"
+  | "basic-information-submit"
+  | "committee-confirmation-edit"
+  | "committee-confirmation-notify";
+type ApplicantJoinInteraction = ButtonInteraction | ModalSubmitInteraction;
+
+function makeApplicantJoinCustomId(action: ApplicantJoinAction): string {
+  return `${applicantJoinCustomIdPrefix}:${action}`;
+}
+
+function parseApplicantJoinCustomId(customId: string): ApplicantJoinAction | undefined {
+  switch (customId) {
+    case makeApplicantJoinCustomId("introduction-next"):
+      return "introduction-next";
+    case makeApplicantJoinCustomId("basic-information-show-modal"):
+      return "basic-information-show-modal";
+    case makeApplicantJoinCustomId("basic-information-submit"):
+      return "basic-information-submit";
+    case makeApplicantJoinCustomId("committee-confirmation-edit"):
+      return "committee-confirmation-edit";
+    case makeApplicantJoinCustomId("committee-confirmation-notify"):
+      return "committee-confirmation-notify";
+    default:
+      break;
+  }
+}
+
+export function isApplicantJoinInteraction(interaction: Interaction): interaction is ApplicantJoinInteraction {
+  if (!interaction.isButton() && !interaction.isModalSubmit()) {
+    return false;
+  }
+
+  return interaction.customId.startsWith(`${applicantJoinCustomIdPrefix}:`);
+}
+
+export async function executeApplicantJoinInteraction(interaction: ApplicantJoinInteraction) {
+  try {
+    const action = parseApplicantJoinCustomId(interaction.customId);
+    if (!action) {
+      await replyWithApplicantInteractionError(interaction);
+      return;
+    }
+
+    if (action === "basic-information-show-modal") {
+      if (!interaction.isButton()) {
+        await replyWithApplicantInteractionError(interaction);
+        return;
+      }
+
+      await interaction.showModal(getBasicInformationModal());
+      return;
+    }
+
+    if (action === "basic-information-submit") {
+      if (!interaction.isModalSubmit()) {
+        await replyWithApplicantInteractionError(interaction);
+        return;
+      }
+
+      await interaction.deferReply();
+      const email = interaction.fields.getTextInputValue("emailInput");
+      const name = interaction.fields.getTextInputValue("nameInput");
+      const studentId = interaction.fields.getTextInputValue("studentIdInput");
+      const discordId = BigInt(interaction.user.id);
+      const membershipConfiguration = await getApplicantMembershipConfiguration(
+        interaction.client,
+        interaction.user.id,
+      );
+      if (!membershipConfiguration) {
+        await interaction.editReply(messages.join.configurationMissing);
+        return;
+      }
+      const notificationChannel = await resolveMembershipNotificationChannel(
+        interaction.client,
+        membershipConfiguration.guild.toString(),
+        membershipConfiguration.notificationChannel.toString(),
+      );
+      if (!notificationChannel) {
+        await interaction.editReply(messages.join.configurationInvalid);
+        return;
+      }
+      const [previousMember] = await db.select()
+        .from(table)
+        .where(eq(table.discordId, discordId));
+      if (!previousMember) {
+        await interaction.editReply(messages.error.generic);
+        return;
+      }
+      const [member] = await db.update(table)
+        .set({
+          email,
+          name,
+          studentId,
+          registrationStep: "COMMITTEE_CONFIRMATION",
+          requestRevision: sql`${table.requestRevision} + 1`,
+        })
+        .where(and(
+          eq(table.discordId, discordId),
+          eq(table.registrationStep, "BASIC_INFORMATION"),
+        ))
+        .returning();
+
+      if (!member) {
+        await replyWithCurrentApplicantState(interaction, discordId);
+        return;
+      }
+
+      if (canSendNotification(member)) {
+        try {
+          await sendNotification(member, notificationChannel);
+        } catch (error) {
+          await db.update(table)
+            .set({
+              email: previousMember.email,
+              name: previousMember.name,
+              studentId: previousMember.studentId,
+              registrationStep: previousMember.registrationStep,
+              requestRevision: previousMember.requestRevision,
+              notificationSentAt: previousMember.notificationSentAt,
+            })
+            .where(and(
+              eq(table.discordId, discordId),
+              eq(table.registrationStep, "COMMITTEE_CONFIRMATION"),
+              eq(table.requestRevision, member.requestRevision),
+            ));
+          throw error;
+        }
+      }
+      await interaction.editReply(getApplicantJoinReply("COMMITTEE_CONFIRMATION"));
+      return;
+    }
+
+    if (!interaction.isButton()) {
+      await replyWithApplicantInteractionError(interaction);
+      return;
+    }
+
+    await interaction.deferReply();
+    const discordId = BigInt(interaction.user.id);
+    switch (action) {
+      case "introduction-next": {
+        const [member] = await db.update(table)
+          .set({ registrationStep: "BASIC_INFORMATION" })
+          .where(and(
+            eq(table.discordId, discordId),
+            eq(table.registrationStep, "INTRODUCTION"),
+          ))
+          .returning();
+        if (!member) {
+          await replyWithCurrentApplicantState(interaction, discordId);
+          return;
+        }
+        await interaction.editReply(getApplicantJoinReply("BASIC_INFORMATION"));
+        return;
+      }
+      case "committee-confirmation-edit": {
+        const [member] = await db.update(table)
+          .set({ registrationStep: "BASIC_INFORMATION" })
+          .where(and(
+            eq(table.discordId, discordId),
+            eq(table.registrationStep, "COMMITTEE_CONFIRMATION"),
+          ))
+          .returning();
+        if (!member) {
+          await replyWithCurrentApplicantState(interaction, discordId);
+          return;
+        }
+        await interaction.editReply(getApplicantJoinReply("BASIC_INFORMATION"));
+        return;
+      }
+      case "committee-confirmation-notify": {
+        const [member] = await db.select()
+          .from(table)
+          .where(eq(table.discordId, discordId));
+        if (!member) {
+          await interaction.editReply(messages.error.generic);
+          return;
+        }
+        if (member.registrationStep !== "COMMITTEE_CONFIRMATION") {
+          await interaction.editReply(getApplicantJoinReply(member.registrationStep));
+          return;
+        }
+
+        const membershipConfiguration = await getApplicantMembershipConfiguration(
+          interaction.client,
+          interaction.user.id,
+        );
+        if (!membershipConfiguration) {
+          await interaction.editReply(messages.join.configurationMissing);
+          return;
+        }
+        const notificationChannel = await resolveMembershipNotificationChannel(
+          interaction.client,
+          membershipConfiguration.guild.toString(),
+          membershipConfiguration.notificationChannel.toString(),
+        );
+        if (!notificationChannel) {
+          await interaction.editReply(messages.join.configurationInvalid);
+          return;
+        }
+        if (canSendNotification(member)) {
+          await sendNotification(member, notificationChannel);
+          await interaction.editReply(messages.join.notificationSent);
+          return;
+        }
+
+        await interaction.editReply({
+          content: messages.join.notificationTimeout(member.notificationSentAt!),
+        });
+      }
+    }
+  } catch (error) {
+    console.error("Failed to handle applicant membership join interaction.", error);
+    await replyWithApplicantInteractionError(interaction);
+  }
+}
+
+async function replyWithCurrentApplicantState(
+  interaction: ApplicantJoinInteraction,
+  discordId: bigint,
+) {
+  const [member] = await db.select()
+    .from(table)
+    .where(eq(table.discordId, discordId));
+  await interaction.editReply(
+    member ? getApplicantJoinReply(member.registrationStep) : messages.error.generic,
+  );
+}
+
+async function getApplicantMembershipConfiguration(
+  client: Interaction["client"],
+  applicantId: string,
+) {
+  const configurations = await db.select({
+    guild: membershipConfigTable.guild,
+    notificationChannel: membershipConfigTable.notificationChannel,
+    membershipRole: membershipConfigTable.membershipRole,
+  })
+    .from(membershipConfigTable);
+  const matchingConfigurations = [];
+  for (const configuration of configurations) {
+    const guild = await client.guilds.fetch(configuration.guild.toString()).catch(() => undefined);
+    if (!guild) {
+      continue;
+    }
+    const applicant = await guild.members.fetch(applicantId).catch(() => undefined);
+    if (applicant) {
+      matchingConfigurations.push(configuration);
+      if (matchingConfigurations.length > 1) {
+        return;
+      }
+    }
+  }
+  return matchingConfigurations[0];
+}
+
+function getApplicantJoinReply(
+  registrationStep: Member["registrationStep"],
+): InteractionReplyOptions & MessageEditOptions | string {
+  switch (registrationStep) {
+    case "INTRODUCTION":
+      return getIntroductionReply();
+    case "BASIC_INFORMATION":
+      return getBasicInformationReply();
+    case "COMMITTEE_CONFIRMATION":
+      return getCommitteeConfirmation();
+    case "COMPLETE":
+      return messages.join.alreadyJoined;
+    default:
+      return messages.error.generic;
+  }
+}
+
+async function replyWithApplicantInteractionError(interaction: ApplicantJoinInteraction) {
+  if (interaction.deferred) {
+    await interaction.editReply(messages.error.generic);
+    return;
+  }
+
+  if (interaction.replied) {
+    await interaction.followUp({ content: messages.error.generic, ephemeral: true });
+    return;
+  }
+
+  await interaction.reply({ content: messages.error.generic, ephemeral: true });
+}
+
 function getIntroductionReply() {
   const next = new ButtonBuilder()
-    .setCustomId("introductionNext")
+    .setCustomId(makeApplicantJoinCustomId("introduction-next"))
     .setLabel("下一步")
     .setStyle(ButtonStyle.Primary)
     .setEmoji("👉");
@@ -131,7 +349,7 @@ function getIntroductionReply() {
 
 function getBasicInformationModal() {
   return new ModalBuilder()
-    .setCustomId("basicInformationModal")
+    .setCustomId(makeApplicantJoinCustomId("basic-information-submit"))
     .setTitle("輸入基本資料")
     .addComponents(
       makeTextInputActionRow("emailInput", "電子郵件"),
@@ -142,7 +360,7 @@ function getBasicInformationModal() {
 
 function getBasicInformationReply() {
   const showModal = new ButtonBuilder()
-    .setCustomId("basicInformationShowModal")
+    .setCustomId(makeApplicantJoinCustomId("basic-information-show-modal"))
     .setLabel("輸入基本資料")
     .setStyle(ButtonStyle.Primary)
     .setEmoji("📝");
@@ -156,12 +374,12 @@ function getBasicInformationReply() {
 
 function getCommitteeConfirmation() {
   const editButton = new ButtonBuilder()
-    .setCustomId("committeeConfirmationEdit")
+    .setCustomId(makeApplicantJoinCustomId("committee-confirmation-edit"))
     .setLabel("修改資料")
     .setStyle(ButtonStyle.Primary)
     .setEmoji("📝");
   const notifyButton = new ButtonBuilder()
-    .setCustomId("committeeConfirmationNotify")
+    .setCustomId(makeApplicantJoinCustomId("committee-confirmation-notify"))
     .setLabel("再次通知幹部")
     .setStyle(ButtonStyle.Primary)
     .setEmoji("📣");
@@ -180,14 +398,35 @@ function canSendNotification(member: Member): boolean {
   return +now - +notificationSentAt > config.memberJoinNotificationTimeoutSeconds * 1000;
 }
 
-async function sendNotification(member: Member, channel: TextChannel) {
+async function sendNotification(member: Member, channel: TextChannel): Promise<Member> {
+  const previousNotificationSentAt = member.notificationSentAt;
+  const notificationSentAt = new Date();
+  const previousCooldownCondition = previousNotificationSentAt
+    ? eq(table.notificationSentAt, previousNotificationSentAt)
+    : isNull(table.notificationSentAt);
+  const [notifiedMember] = await db.update(table)
+    .set({ notificationSentAt })
+    .where(and(
+      eq(table.discordId, member.discordId),
+      eq(table.registrationStep, "COMMITTEE_CONFIRMATION"),
+      eq(table.requestRevision, member.requestRevision),
+      previousCooldownCondition,
+    ))
+    .returning();
+  if (!notifiedMember) {
+    const [currentMember] = await db.select()
+      .from(table)
+      .where(eq(table.discordId, member.discordId));
+    return currentMember ?? member;
+  }
+
   const acceptButton = new ButtonBuilder()
-    .setCustomId("joinNotificationAccept")
+    .setCustomId(makeJoinNotificationCustomId("accept", member.discordId, member.requestRevision))
     .setLabel("接受")
     .setStyle(ButtonStyle.Success)
     .setEmoji("✔");
   const rejectButton = new ButtonBuilder()
-    .setCustomId("joinNotificationReject")
+    .setCustomId(makeJoinNotificationCustomId("reject", member.discordId, member.requestRevision))
     .setLabel("拒絕")
     .setStyle(ButtonStyle.Danger)
     .setEmoji("✖");
@@ -195,57 +434,239 @@ async function sendNotification(member: Member, channel: TextChannel) {
     .addComponents(acceptButton)
     .addComponents(rejectButton);
 
-  const buttonCollector = channel.createMessageComponentCollector();
-  buttonCollector.on("collect", async (interaction) => {
-    if (!interaction.inGuild()) {
+  try {
+    await channel.send({ content: messages.join.notification(notifiedMember), components: [actionRow] });
+  } catch (error) {
+    await db.update(table)
+      .set({ notificationSentAt: previousNotificationSentAt })
+      .where(and(
+        eq(table.discordId, member.discordId),
+        eq(table.registrationStep, "COMMITTEE_CONFIRMATION"),
+        eq(table.requestRevision, member.requestRevision),
+        eq(table.notificationSentAt, notificationSentAt),
+      ));
+    throw error;
+  }
+
+  return notifiedMember;
+}
+
+const joinNotificationCustomIdPrefix = "membershipJoin";
+const legacyJoinNotificationCustomIds: Record<string, true> = {
+  joinNotificationAccept: true,
+  joinNotificationReject: true,
+  joinNotificationRejectReason: true,
+};
+const maximumDiscordId = 18_446_744_073_709_551_615n;
+const maximumRequestRevision = 2_147_483_647;
+
+type JoinNotificationAction = "accept" | "reject" | "rejectReason";
+type JoinNotificationInteraction = ButtonInteraction | ModalSubmitInteraction;
+
+export function isJoinNotificationInteraction(interaction: Interaction): interaction is JoinNotificationInteraction {
+  if (!interaction.isButton() && !interaction.isModalSubmit()) {
+    return false;
+  }
+
+  return interaction.customId.startsWith(`${joinNotificationCustomIdPrefix}:`) ||
+    interaction.customId in legacyJoinNotificationCustomIds;
+}
+
+export function makeJoinNotificationCustomId(
+  action: JoinNotificationAction,
+  discordId: bigint,
+  requestRevision: number,
+): string {
+  return `${joinNotificationCustomIdPrefix}:${action}:${discordId}:${requestRevision}`;
+}
+
+export function parseJoinNotificationCustomId(customId: string): {
+  action: JoinNotificationAction;
+  discordId: bigint;
+  requestRevision: number;
+} | undefined {
+  const match = /^membershipJoin:(accept|reject|rejectReason):([1-9]\d{0,19}):(0|[1-9]\d{0,9})$/.exec(customId);
+  if (!match) {
+    return;
+  }
+
+  const discordId = BigInt(match[2]!);
+  const requestRevision = Number(match[3]);
+  if (
+    discordId > maximumDiscordId ||
+    !Number.isSafeInteger(requestRevision) ||
+    requestRevision > maximumRequestRevision
+  ) {
+    return;
+  }
+
+  return {
+    action: match[1] as JoinNotificationAction,
+    discordId,
+    requestRevision,
+  };
+}
+
+export async function executeJoinNotificationInteraction(interaction: JoinNotificationInteraction) {
+  try {
+    const notification = parseJoinNotificationCustomId(interaction.customId);
+    if (!notification) {
+      await replyWithStaleNotification(interaction);
       return;
     }
-    const requester = interaction.guild!.members.cache.get(member.discordId.toString())!;
 
-    switch (interaction.customId) {
-      case "joinNotificationAccept": {
-        [member] = await db.update(table)
-          .set({
-            registrationStep: "COMPLETE",
-            joinedAt: new Date(),
-          })
-          .where(eq(table.discordId, member.discordId))
-          .returning();
-
-        const membershipRole = interaction.guild!.roles.cache.get(config.membershipRoleId)!;
-        await requester.roles.add(membershipRole);
-        await requester.send(messages.join.accept);
-        await interaction.reply(`<@${interaction.user.id}> 已接受 <@${member.discordId}> 的加入請求。`);
-        break;
-      }
-
-      case "joinNotificationReject": {
-        const rejectReasonModal = new ModalBuilder()
-          .setCustomId("joinNotificationRejectReason")
-          .setTitle("輸入理由")
-          .addComponents(makeTextInputActionRow("rejectReasonInput", "請輸入完整的拒絕理由，這會傳送給請求加入者。他會回到「填寫基本資料」步驟。"));
-
-        // Notify the requester and change the registration step.
-        const submission = await showModalAndGetSubmission(interaction, rejectReasonModal);
-        const reason = submission.fields.getTextInputValue("rejectReasonInput");
-
-        [member] = await db.update(table)
-          .set({ registrationStep: "BASIC_INFORMATION" })
-          .where(eq(table.discordId, member.discordId))
-          .returning();
-
-        await requester.send(messages.join.reject(reason));
-        await submission.reply(
-          `<@${submission.user.id}> 已拒絕 <@${member.discordId}> 的加入請求，理由：${reason}。`,
-        );
-
-        break;
-      }
+    if (interaction.isButton() && notification.action === "reject") {
+      await interaction.showModal(getRejectReasonModal(
+        notification.discordId,
+        notification.requestRevision,
+      ));
+      return;
     }
-  });
 
-  await channel.send({ content: messages.join.notification(member), components: [actionRow] });
-  await db.update(table)
-    .set({ notificationSentAt: new Date() })
-    .where(eq(table.discordId, member.discordId));
+    if (!interaction.inGuild()) {
+      await interaction.reply({ content: messages.error.useInGuild, ephemeral: true });
+      return;
+    }
+
+    if (!interaction.memberPermissions?.has(PermissionFlagsBits.ManageRoles)) {
+      await interaction.reply({ content: "必須有管理身份組的權限", ephemeral: true });
+      return;
+    }
+
+    if (interaction.isButton()) {
+      if (notification.action !== "accept") {
+        await replyWithStaleNotification(interaction);
+        return;
+      }
+
+      await interaction.deferReply();
+      await acceptJoinNotification(
+        interaction,
+        notification.discordId,
+        notification.requestRevision,
+      );
+      return;
+    }
+
+    if (notification.action !== "rejectReason") {
+      await replyWithStaleNotification(interaction);
+      return;
+    }
+
+    const reason = interaction.fields.getTextInputValue("rejectReasonInput");
+    await interaction.deferReply();
+    await rejectJoinNotification(
+      interaction,
+      notification.discordId,
+      notification.requestRevision,
+      reason,
+    );
+  } catch (error) {
+    console.error("Failed to handle membership join notification interaction.", error);
+    await replyWithInteractionError(interaction);
+  }
+}
+
+function getRejectReasonModal(discordId: bigint, requestRevision: number) {
+  return new ModalBuilder()
+    .setCustomId(makeJoinNotificationCustomId("rejectReason", discordId, requestRevision))
+    .setTitle("輸入理由")
+    .addComponents(makeTextInputActionRow(
+      "rejectReasonInput",
+      "請輸入完整的拒絕理由，這會傳送給請求加入者。他會回到「填寫基本資料」步驟。",
+    ));
+}
+
+async function acceptJoinNotification(
+  interaction: ButtonInteraction<"cached" | "raw">,
+  discordId: bigint,
+  requestRevision: number,
+) {
+  const result = await acceptMembershipRequest(
+    interaction.guild!,
+    discordId,
+    requestRevision,
+  );
+  if (result.status === "configuration-missing") {
+    await interaction.editReply(messages.join.configurationMissing);
+    return;
+  }
+  if (result.status === "resources-missing") {
+    await interaction.editReply("找不到請求加入者或社員身份組，尚未接受這個加入請求。");
+    return;
+  }
+  if (result.status === "role-assignment-failed") {
+    await interaction.editReply("無法分配社員身份組，尚未接受這個加入請求，請稍後再試。");
+    return;
+  }
+  if (result.status !== "accepted") {
+    await replyWithStaleNotification(interaction);
+    return;
+  }
+
+  await interaction.editReply(
+    `<@${interaction.user.id}> 已接受 <@${discordId}> 的加入請求。${result.directMessageFailed ? "（無法傳送私訊通知。）" : ""}`,
+  );
+}
+
+async function rejectJoinNotification(
+  interaction: ModalSubmitInteraction<"cached" | "raw">,
+  discordId: bigint,
+  requestRevision: number,
+  reason: string,
+) {
+  const [member] = await db.update(table)
+    .set({ registrationStep: "BASIC_INFORMATION" })
+    .where(and(
+      eq(table.discordId, discordId),
+      eq(table.registrationStep, "COMMITTEE_CONFIRMATION"),
+      eq(table.requestRevision, requestRevision),
+    ))
+    .returning();
+  if (!member) {
+    await replyWithStaleNotification(interaction);
+    return;
+  }
+
+  let directMessageFailed = false;
+  try {
+    const requester = await interaction.client.users.fetch(discordId.toString());
+    await requester.send(messages.join.reject(reason));
+  } catch (error) {
+    directMessageFailed = true;
+    console.error(`Failed to notify rejected member ${discordId}.`, error);
+  }
+
+  await interaction.editReply(
+    `<@${interaction.user.id}> 已拒絕 <@${discordId}> 的加入請求，理由：${reason}。${directMessageFailed ? "（無法傳送私訊通知。）" : ""}`,
+  );
+}
+
+async function replyWithStaleNotification(interaction: JoinNotificationInteraction) {
+  const content = "這個加入請求按鈕無效或已經失效，請使用「/社員 請求 查看」確認目前狀態。";
+  if (interaction.deferred) {
+    await interaction.editReply(content);
+    return;
+  }
+
+  if (interaction.replied) {
+    await interaction.followUp({ content, ephemeral: true });
+    return;
+  }
+
+  await interaction.reply({ content, ephemeral: true });
+}
+
+async function replyWithInteractionError(interaction: JoinNotificationInteraction) {
+  if (interaction.deferred) {
+    await interaction.editReply(messages.error.generic);
+    return;
+  }
+
+  if (interaction.replied) {
+    await interaction.followUp({ content: messages.error.generic, ephemeral: true });
+    return;
+  }
+
+  await interaction.reply({ content: messages.error.generic, ephemeral: true });
 }

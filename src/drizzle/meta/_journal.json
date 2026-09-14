@@ -8,6 +8,41 @@
       "when": 1724592555988,
       "tag": "0000_wise_rocket_racer",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1789151124505,
+      "tag": "0001_misty_slapstick",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1789312451124,
+      "tag": "0002_same_callisto",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1789312619279,
+      "tag": "0003_hard_drax",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1789312619280,
+      "tag": "0004_romantic_dark_beast",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1789312619281,
+      "tag": "0005_chubby_slyde",
+      "breakpoints": true
     }
   ]
 }

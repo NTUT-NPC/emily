@@ -6,6 +6,7 @@ import {
 import { eq } from "drizzle-orm";
 import executeCreateSubcommand from "./create";
 import executeListSubcommand from "./list";
+import { reconcileMetaroleMembers } from "./memberSync";
 import executeRemoveSubcommand from "./remove";
 import executeSyncSubcommand from "./sync";
 import type { Command } from "#/types";
@@ -84,7 +85,7 @@ export async function syncMetarole(
   interaction: Interaction,
   metaroleId: bigint,
 ) {
-  if (!interaction.isChatInputCommand() || !interaction.inGuild()) {
+  if (!interaction.isChatInputCommand() || !interaction.inCachedGuild()) {
     return;
   }
 
@@ -99,18 +100,20 @@ export async function syncMetarole(
     return;
   }
 
-  for (const memberRole of metarole.memberRoles) {
-    const role = interaction.guild?.roles.cache.get(memberRole.toString());
-    if (!role) {
-      continue;
-    }
-
-    for (const member of role.members.values()) {
-      await member.roles.add(metarole.role.toString());
-    }
+  const roleId = metarole.role.toString();
+  const role = await interaction.guild.roles.fetch(roleId);
+  if (!role) {
+    throw new Error(`Metarole ${roleId} no longer exists in guild ${interaction.guildId}.`);
   }
 
-  await db.update(table)
-    .set({ syncedAt: new Date() })
-    .where(eq(table.role, metaroleId));
+  await reconcileMetaroleMembers({
+    metaroleId: roleId,
+    memberRoleIds: metarole.memberRoles.map((memberRole) => memberRole.toString()),
+    fetchMembers: async () => (await interaction.guild.members.fetch()).values(),
+    markSynced: async () => {
+      await db.update(table)
+        .set({ syncedAt: new Date() })
+        .where(eq(table.role, metaroleId));
+    },
+  });
 }

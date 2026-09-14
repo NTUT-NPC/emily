@@ -1,5 +1,5 @@
 import type { ChatInputCommandInteraction } from "discord.js";
-import { PermissionsBitField, SlashCommandBuilder } from "discord.js";
+import { ChannelType, PermissionsBitField, SlashCommandBuilder } from "discord.js";
 import executeJoinSubcommand from "./join";
 import executeNotificationConfigSubcommand from "./notificationConfig";
 import executeRequestsList from "./requestsList";
@@ -20,11 +20,13 @@ const command: Command = {
       .addChannelOption((option) => option
         .setName("頻道")
         .setDescription("傳送通知的頻道")
+        .addChannelTypes(ChannelType.GuildText)
         .setRequired(true),
       )
       .addRoleOption((option) => option
         .setName("身份組")
-        .setDescription("可以接收通知的身份組"),
+        .setDescription("加入社員後要分配的身份組")
+        .setRequired(true),
       ),
     )
     .addSubcommandGroup((subcommandGroup) => subcommandGroup
@@ -32,7 +34,11 @@ const command: Command = {
       .setDescription("管理社員加入請求")
       .addSubcommand((subcommand) => subcommand
         .setName("查看")
-        .setDescription("查看正在等待幹部確認的請求"),
+        .setDescription("查看正在等待幹部確認的請求")
+        .addIntegerOption((option) => option
+          .setName("頁碼")
+          .setDescription("要查看的頁碼")
+          .setMinValue(1)),
       )
       .addSubcommand((subcommand) => subcommand
         .setName("接受")
@@ -68,7 +74,7 @@ const command: Command = {
       case "加入":
         await executeJoinSubcommand(interaction);
         break;
-      case "設定通知頻道":
+      case "設定通知":
         await executeNotificationConfigSubcommand(interaction);
         break;
       case "查看":
