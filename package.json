@@ -4,7 +4,7 @@
   "packageManager": "pnpm@9.7.1",
   "description": "北科程式設計研究社 (NPC) 的 Discord 社群管理工具，舊 Emily 的 Discord.js 重製版。",
   "engines": {
-    "node": ">=20.16.0"
+    "node": ">=24.22.1"
   },
   "scripts": {
     "dev": "tsx --watch src/main.ts",
