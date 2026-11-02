@@ -1,16 +1,16 @@
 import type { Guild } from "discord.js";
 import { and, eq } from "drizzle-orm";
 import { messages } from "#/config";
-import { db } from "#drizzle/db";
 import { membershipConfig as membershipConfigTable, member as table } from "#/drizzle/schema";
+import { db } from "#drizzle/db";
 
 type MembershipAcceptanceResult =
-  | { status: "accepted"; directMessageFailed: boolean }
-  | { status: "not-found" }
-  | { status: "stale" }
-  | { status: "configuration-missing" }
-  | { status: "resources-missing" }
-  | { status: "role-assignment-failed" };
+  | { status: "accepted"; directMessageFailed: boolean } |
+  { status: "not-found" } |
+  { status: "stale" } |
+  { status: "configuration-missing" } |
+  { status: "resources-missing" } |
+  { status: "role-assignment-failed" };
 
 export async function acceptMembershipRequest(
   guild: Guild,

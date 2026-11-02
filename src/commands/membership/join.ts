@@ -1,13 +1,13 @@
 import type { ButtonInteraction, Interaction, InteractionReplyOptions, MessageActionRowComponentBuilder, MessageEditOptions, ModalSubmitInteraction, TextChannel } from "discord.js";
+import type { Member, Subcommand } from "#/types";
 import { ActionRowBuilder, ButtonBuilder, ButtonStyle, ModalBuilder, PermissionFlagsBits } from "discord.js";
 import { and, eq, isNull, sql } from "drizzle-orm";
+import config, { messages } from "#/config";
+import { membershipConfig as membershipConfigTable, member as table } from "#/drizzle/schema";
+import { db } from "#drizzle/db";
 import { makeTextInputActionRow } from "../shared";
 import { acceptMembershipRequest } from "./accept";
 import { resolveMembershipNotificationChannel } from "./notificationChannel";
-import config, { messages } from "#/config";
-import type { Member, Subcommand } from "#/types";
-import { db } from "#drizzle/db";
-import { membershipConfig as membershipConfigTable, member as table } from "#/drizzle/schema";
 
 const executeJoinSubcommand: Subcommand = async (interaction) => {
   // 這個指令限私訊使用
@@ -44,11 +44,11 @@ export default executeJoinSubcommand;
 const applicantJoinCustomIdPrefix = "membershipJoinApplicant";
 
 type ApplicantJoinAction =
-  | "introduction-next"
-  | "basic-information-show-modal"
-  | "basic-information-submit"
-  | "committee-confirmation-edit"
-  | "committee-confirmation-notify";
+  | "introduction-next" |
+  "basic-information-show-modal" |
+  "basic-information-submit" |
+  "committee-confirmation-edit" |
+  "committee-confirmation-notify";
 type ApplicantJoinInteraction = ButtonInteraction | ModalSubmitInteraction;
 
 function makeApplicantJoinCustomId(action: ApplicantJoinAction): string {
@@ -270,7 +270,9 @@ async function replyWithCurrentApplicantState(
     .from(table)
     .where(eq(table.discordId, discordId));
   await interaction.editReply(
-    member ? getApplicantJoinReply(member.registrationStep) : messages.error.generic,
+    member
+      ? getApplicantJoinReply(member.registrationStep)
+      : messages.error.generic,
   );
 }
 
@@ -435,7 +437,10 @@ async function sendNotification(member: Member, channel: TextChannel): Promise<M
     .addComponents(rejectButton);
 
   try {
-    await channel.send({ content: messages.join.notification(notifiedMember), components: [actionRow] });
+    await channel.send({
+      content: messages.join.notification(notifiedMember),
+      components: [actionRow],
+    });
   } catch (error) {
     await db.update(table)
       .set({ notificationSentAt: previousNotificationSentAt })

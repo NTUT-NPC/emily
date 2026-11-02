@@ -1,17 +1,17 @@
 import type { Interaction } from "discord.js";
+import type { Command } from "#/types";
 import {
   PermissionFlagsBits,
   SlashCommandBuilder,
 } from "discord.js";
 import { eq } from "drizzle-orm";
+import { db } from "#drizzle/db";
+import { metarole as table } from "#drizzle/schema";
 import executeCreateSubcommand from "./create";
 import executeListSubcommand from "./list";
 import { reconcileMetaroleMembers } from "./memberSync";
 import executeRemoveSubcommand from "./remove";
 import executeSyncSubcommand from "./sync";
-import type { Command } from "#/types";
-import { db } from "#drizzle/db";
-import { metarole as table } from "#drizzle/schema";
 
 export default {
   data: new SlashCommandBuilder()
@@ -112,7 +112,9 @@ export async function syncMetarole(
     fetchMembers: async () => (await interaction.guild.members.fetch()).values(),
     markSynced: async () => {
       await db.update(table)
-        .set({ syncedAt: new Date() })
+        .set({
+          syncedAt: new Date(),
+        })
         .where(eq(table.role, metaroleId));
     },
   });

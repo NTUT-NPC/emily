@@ -6,5 +6,13 @@
   ],
   "timezone": "Asia/Taipei",
   "schedule": ["* * 2 * *"],
-  "prHourlyLimit": 0
+  "prHourlyLimit": 0,
+  "packageRules": [
+    {
+      "description": "typescript-eslint supports TypeScript >=4.8.4 <6.1.0; TypeScript 7 crashes lint.",
+      "matchManagers": ["npm"],
+      "matchPackageNames": ["typescript"],
+      "allowedVersions": "<6.1.0"
+    }
+  ]
 }

@@ -1,4 +1,5 @@
 import type { MessageActionRowComponentBuilder } from "discord.js";
+import type { Subcommand } from "#/types";
 import {
   ActionRowBuilder,
   ButtonBuilder,
@@ -7,11 +8,10 @@ import {
   PermissionFlagsBits,
 } from "discord.js";
 import { eq } from "drizzle-orm";
-import { createThreadButtonCustomId, validateDmConfiguration } from "./shared";
 import { messages } from "#/config";
 import { db } from "#drizzle/db";
 import { dmConfig as table } from "#drizzle/schema";
-import type { Subcommand } from "#/types";
+import { createThreadButtonCustomId, validateDmConfiguration } from "./shared";
 
 const manageDmPermission = PermissionFlagsBits.ManageGuild;
 const instructionMessage = `# 聯絡幹部
@@ -142,7 +142,9 @@ const executeConfigSubcommand: Subcommand = async (interaction) => {
   try {
     await interaction.editReply({
       content: `已儲存 /私訊 設定，並在指定頻道傳送操作說明。`,
-      allowedMentions: { users: [interaction.user.id] },
+      allowedMentions: {
+        users: [interaction.user.id],
+      },
     });
   } catch (error) {
     console.error(`Posted the /私訊 instruction panel, but failed to confirm it to ${interaction.user.id}.`, error);

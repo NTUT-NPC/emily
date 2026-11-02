@@ -1,6 +1,6 @@
+import type { Command } from "#/types";
 import { ChannelType, PermissionFlagsBits, SlashCommandBuilder } from "discord.js";
 import executeConfigSubcommand from "./config";
-import type { Command } from "#/types";
 
 const command = {
   data: new SlashCommandBuilder()

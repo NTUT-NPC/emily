@@ -13,7 +13,7 @@ services:
     depends_on:
       db:
         condition: service_healthy
-    restart: "no"
+    restart: no
     env_file: emily.env
 
   db:
@@ -24,7 +24,7 @@ services:
     restart: unless-stopped
     env_file: db.env
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres -d emily"]
+      test: [CMD-SHELL, pg_isready -U postgres -d emily]
       interval: 5s
       timeout: 5s
       retries: 10

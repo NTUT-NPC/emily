@@ -26,7 +26,9 @@ export const dmThread = pgTable("DmThread", {
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().notNull().$onUpdate(() => new Date()),
 }, (table) => ({
-  primaryKey: primaryKey({ columns: [table.guild, table.userId] }),
+  primaryKey: primaryKey({
+    columns: [table.guild, table.userId],
+  }),
 }));
 export const membershipConfig = pgTable("MembershipConfig", {
   guild: bigint("guild", { mode: "bigint" }).primaryKey(),
