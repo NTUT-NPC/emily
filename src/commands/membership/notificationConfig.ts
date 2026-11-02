@@ -1,9 +1,9 @@
+import type { Subcommand } from "#/types";
 import { ChannelType, PermissionsBitField } from "discord.js";
-import { validateMembershipNotificationChannel } from "./notificationChannel";
 import { messages } from "#/config";
 import { db } from "#/drizzle/db";
 import { membershipConfig as table } from "#/drizzle/schema";
-import type { Subcommand } from "#/types";
+import { validateMembershipNotificationChannel } from "./notificationChannel";
 
 const requiredPermissions = [
   PermissionsBitField.Flags.ManageRoles,

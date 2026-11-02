@@ -1,10 +1,10 @@
-import { asc, eq } from "drizzle-orm";
-import { buildRequestListReply } from "./requestsListPagination";
-import { hasManageRolesPermission } from ".";
 import type { Subcommand } from "#/types";
+import { asc, eq } from "drizzle-orm";
 import { messages } from "#/config";
 import { db } from "#drizzle/db";
 import { member as table } from "#drizzle/schema";
+import { hasManageRolesPermission } from ".";
+import { buildRequestListReply } from "./requestsListPagination";
 
 const executeRequestsList: Subcommand = async (interaction) => {
   if (!interaction.inGuild()) {

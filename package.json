@@ -1,10 +1,13 @@
 {
   "name": "emily-js",
   "version": "0.1.0",
-  "packageManager": "pnpm@9.7.1",
+  "packageManager": "pnpm@12.16.1",
   "description": "北科程式設計研究社 (NPC) 的 Discord 社群管理工具，舊 Emily 的 Discord.js 重製版。",
+  "imports": {
+    "#*": "./src/*"
+  },
   "engines": {
-    "node": ">=24.22.1"
+    "node": ">=26.13.0"
   },
   "scripts": {
     "dev": "tsx --watch src/main.ts",
@@ -14,21 +17,18 @@
     "lint:fix": "eslint . --fix"
   },
   "dependencies": {
-    "discord.js": "^14.15.3",
-    "drizzle-orm": "^0.33.0",
-    "postgres": "^3.4.4"
+    "discord.js": "^14.28.0",
+    "drizzle-orm": "^0.45.4",
+    "postgres": "^4.0.0"
   },
   "devDependencies": {
-    "@antfu/eslint-config": "^2.26.0",
-    "dotenv": "^16.4.5",
-    "drizzle-kit": "^0.24.1",
-    "esbuild": "^0.23.1",
-    "eslint": "^9.9.0",
-    "eslint-plugin-format": "^0.1.2",
-    "tsx": "^4.17.0",
-    "typescript": "5.5.4"
-  },
-  "imports": {
-    "#*": "./src/*"
+    "@antfu/eslint-config": "^10.0.0",
+    "dotenv": "^18.0.9",
+    "drizzle-kit": "^0.31.11",
+    "esbuild": "^0.28.2",
+    "eslint": "^10.14.0",
+    "eslint-plugin-format": "^2.0.1",
+    "tsx": "^4.23.15",
+    "typescript": "6.0.3"
   }
 }

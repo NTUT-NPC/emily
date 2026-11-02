@@ -1,10 +1,10 @@
 import type { ApplicationCommand } from "discord.js";
+import type { Command } from "#types";
 import { REST, Routes } from "discord.js";
 import convertChannelNameCommand from "./convertChannelName";
 import directMessageCommand from "./directMessage";
 import membershipCommand from "./membership";
 import metaroleCommand from "./metarole";
-import type { Command } from "#types";
 
 const commands = new Map<string, Command>();
 

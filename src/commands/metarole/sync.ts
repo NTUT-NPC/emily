@@ -1,8 +1,8 @@
-import { eq } from "drizzle-orm";
-import { syncMetarole } from ".";
 import type { Subcommand } from "#/types";
+import { eq } from "drizzle-orm";
 import { db } from "#drizzle/db";
 import { metarole as table } from "#drizzle/schema";
+import { syncMetarole } from ".";
 
 const executeSyncSubcommand: Subcommand = async (interaction) => {
   if (!interaction.inGuild()) {

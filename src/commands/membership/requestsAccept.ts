@@ -1,7 +1,7 @@
-import { acceptMembershipRequest } from "./accept";
-import { hasManageRolesPermission } from ".";
-import { messages } from "#/config";
 import type { Subcommand } from "#/types";
+import { messages } from "#/config";
+import { hasManageRolesPermission } from ".";
+import { acceptMembershipRequest } from "./accept";
 
 const executeRequestsAccept: Subcommand = async (interaction) => {
   if (!interaction.inGuild()) {

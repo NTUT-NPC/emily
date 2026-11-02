@@ -1,9 +1,9 @@
-import { eq } from "drizzle-orm";
-import { hasManageRolesPermission } from ".";
 import type { Subcommand } from "#/types";
+import { eq } from "drizzle-orm";
 import { messages } from "#/config";
 import { db } from "#drizzle/db";
 import { member as table } from "#drizzle/schema";
+import { hasManageRolesPermission } from ".";
 
 const executeRequestsReject: Subcommand = async (interaction) => {
   if (!interaction.inGuild()) {

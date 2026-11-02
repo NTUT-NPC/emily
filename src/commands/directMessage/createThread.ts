@@ -1,17 +1,17 @@
 import type { ButtonInteraction, ThreadChannel } from "discord.js";
 import {
+  channelMention,
   ChannelType,
   MessageFlags,
-  ThreadAutoArchiveDuration,
-  channelMention,
   roleMention,
+  ThreadAutoArchiveDuration,
   userMention,
 } from "discord.js";
 import { and, eq, sql } from "drizzle-orm";
-import { validateDmConfiguration, validateDmMember } from "./shared";
 import { messages } from "#/config";
 import { db } from "#drizzle/db";
 import { dmConfig as table, dmThread as threadTable } from "#drizzle/schema";
+import { validateDmConfiguration, validateDmMember } from "./shared";
 
 const staffMentionError = "無法通知幹部，請聯絡伺服器管理員檢查 /私訊 設定。";
 export default async function executeCreateThreadButton(interaction: ButtonInteraction) {
@@ -88,7 +88,9 @@ export default async function executeCreateThreadButton(interaction: ButtonInter
           allowedMentions: {
             parse: [],
             users: [interaction.user.id],
-            roles: mentionStaffRole ? [staffRole.id] : [],
+            roles: mentionStaffRole
+              ? [staffRole.id]
+              : [],
           },
         });
         if (
@@ -127,7 +129,9 @@ export default async function executeCreateThreadButton(interaction: ButtonInter
           await thread.members.add(interaction.user.id, "重新加入私人聯絡討論串");
           await notifyThread(thread, false);
           await tx.update(threadTable)
-            .set({ updatedAt: new Date() })
+            .set({
+              updatedAt: new Date(),
+            })
             .where(and(
               eq(threadTable.guild, BigInt(interaction.guildId)),
               eq(threadTable.userId, BigInt(interaction.user.id)),

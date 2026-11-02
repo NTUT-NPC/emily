@@ -1,11 +1,11 @@
 import type { ChatInputCommandInteraction } from "discord.js";
+import type { Command } from "#/types";
 import { ChannelType, PermissionsBitField, SlashCommandBuilder } from "discord.js";
 import executeJoinSubcommand from "./join";
 import executeNotificationConfigSubcommand from "./notificationConfig";
-import executeRequestsList from "./requestsList";
 import executeRequestsAccept from "./requestsAccept";
+import executeRequestsList from "./requestsList";
 import executeRequestsReject from "./requestsReject";
-import type { Command } from "#/types";
 
 const command: Command = {
   data: new SlashCommandBuilder()
@@ -94,5 +94,6 @@ export default command;
 
 export function hasManageRolesPermission(interaction: ChatInputCommandInteraction) {
   return !interaction.guild?.members.cache.get(interaction.user.id)
-    ?.permissions.has(PermissionsBitField.Flags.ManageRoles);
+    ?.permissions
+    .has(PermissionsBitField.Flags.ManageRoles);
 }

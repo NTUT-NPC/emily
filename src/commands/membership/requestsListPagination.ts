@@ -24,7 +24,9 @@ export function buildRequestListReply(
       ? `<t:${Math.floor(request.notificationSentAt.getTime() / 1_000)}:R>`
       : "尚未通知";
     const line = `<@${request.discordId}> ${notificationStatus}: \`${formatField(request.email)}\`, \`${formatField(request.name)}\`, \`${formatField(request.studentId)}\``;
-    const candidate = pageBody ? `${pageBody}\n${line}` : line;
+    const candidate = pageBody
+      ? `${pageBody}\n${line}`
+      : line;
     if (candidate.length > maximumPageBodyLength) {
       pageBodies.push(pageBody);
       pageBody = line;

@@ -1,5 +1,5 @@
-import { eq } from "drizzle-orm";
 import type { Subcommand } from "#/types";
+import { eq } from "drizzle-orm";
 import { db } from "#drizzle/db";
 import { metarole as table } from "#drizzle/schema";
 

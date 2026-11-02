@@ -18,7 +18,13 @@ module.exports = antfu(
       "node/prefer-global/process": ["error", "always"],
       "style/arrow-parens": ["error", "always"],
       "style/brace-style": ["error", "1tbs"],
-      "style/operator-linebreak": ["error", "after", { overrides: { "?": "before", ":": "before" } }],
+      "style/operator-linebreak": [
+        "error",
+        "after",
+        {
+          overrides: { "?": "before", ":": "before" },
+        },
+      ],
     },
   },
   {
