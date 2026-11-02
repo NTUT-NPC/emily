@@ -22,13 +22,13 @@
     "postgres": "^4.0.0"
   },
   "devDependencies": {
-    "@antfu/eslint-config": "^10.0.0",
-    "dotenv": "^18.0.9",
-    "drizzle-kit": "^0.31.11",
-    "esbuild": "^0.28.2",
-    "eslint": "^10.14.0",
-    "eslint-plugin-format": "^2.0.1",
-    "tsx": "^4.23.15",
+    "@antfu/eslint-config": "10.0.0",
+    "dotenv": "18.0.9",
+    "drizzle-kit": "0.31.11",
+    "esbuild": "0.28.2",
+    "eslint": "10.14.0",
+    "eslint-plugin-format": "2.0.1",
+    "tsx": "4.23.15",
     "typescript": "6.0.3"
   }
 }
